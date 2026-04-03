@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { Allergy, Condition } from '@/lib/types'
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -19,30 +20,27 @@ export default function EditPage({ params }: { params: { id: string } }) {
     has_epipen: false,
     epipen_location: '',
   })
-  const [allergies, setAllergies] = useState<any[]>([])
-  const [conditions, setConditions] = useState<any[]>([])
+  const [allergies, setAllergies] = useState<Allergy[]>([])
+  const [conditions, setConditions] = useState<Condition[]>([])
 
   useEffect(() => {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
-
       const { data } = await supabase
         .from('children')
         .select('*, allergies(*), conditions(*)')
         .eq('id', params.id)
         .eq('parent_id', session.user.id)
         .single()
-
       if (!data) { router.push('/dashboard'); return }
-
       setForm({
-        display_name: data.display_name,
+        display_name: data.display_name ?? '',
         full_name: data.full_name ?? '',
         kana: data.kana ?? '',
-        age: data.age,
+        age: data.age ?? '',
         blood_type: data.blood_type ?? '不明',
-        has_epipen: data.has_epipen,
+        has_epipen: data.has_epipen ?? false,
         epipen_location: data.epipen_location ?? '',
       })
       setAllergies(data.allergies ?? [])
@@ -61,9 +59,11 @@ export default function EditPage({ params }: { params: { id: string } }) {
   }
 
   async function addAllergy() {
-    const { data } = await supabase.from('allergies').insert({
-      child_id: params.id, name: '', severity: '軽度', action: ''
-    }).select().single()
+    const { data } = await supabase
+      .from('allergies')
+      .insert({ child_id: params.id, name: '', severity: '軽度', action: '' })
+      .select()
+      .single()
     if (data) setAllergies([...allergies, data])
   }
 
@@ -78,9 +78,11 @@ export default function EditPage({ params }: { params: { id: string } }) {
   }
 
   async function addCondition() {
-    const { data } = await supabase.from('conditions').insert({
-      child_id: params.id, name: '', note: ''
-    }).select().single()
+    const { data } = await supabase
+      .from('conditions')
+      .insert({ child_id: params.id, name: '', note: '' })
+      .select()
+      .single()
     if (data) setConditions([...conditions, data])
   }
 
@@ -103,17 +105,15 @@ export default function EditPage({ params }: { params: { id: string } }) {
   return (
     <main className="min-h-screen bg-[#F4F7F5] pb-32">
       <div className="max-w-md mx-auto p-4">
-
         <div className="flex items-center gap-3 py-4 mb-2">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
           <div className="font-black text-xl text-[#0E1A12]">情報を編集</div>
         </div>
 
         <div className="flex gap-2 mb-4">
-          {([['basic','基本情報'],['allergy','アレルギー'],['condition','持病']] as const).map(([id, label]) => (
-            <button key={id} onClick={() => setTab(id)}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold ${tab === id ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]'}`}>
-              {label}
+          {(['basic', 'allergy', 'condition'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)} className={"flex-1 py-2 rounded-xl text-xs font-bold " + (tab === t ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]')}>
+              {t === 'basic' ? '基本情報' : t === 'allergy' ? 'アレルギー' : '持病'}
             </button>
           ))}
         </div>
@@ -121,53 +121,40 @@ export default function EditPage({ params }: { params: { id: string } }) {
         {tab === 'basic' && (
           <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm space-y-4">
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">呼び名</label>
-              <input value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})}
-                className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">呼び名</label>
+              <input value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">フルネーム</label>
-              <input value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})}
-                className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">フルネーム</label>
+              <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">よみがな</label>
-              <input value={form.kana} onChange={e => setForm({...form, kana: e.target.value})}
-                className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">よみがな</label>
+              <input value={form.kana} onChange={e => setForm({ ...form, kana: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">年齢</label>
-                <input value={form.age} onChange={e => setForm({...form, age: e.target.value})}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
+                <label className="block text-xs font-black text-[#7A8E80] mb-1">年齢</label>
+                <input value={form.age} onChange={e => setForm({ ...form, age: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">血液型</label>
-                <select value={form.blood_type} onChange={e => setForm({...form, blood_type: e.target.value})}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none bg-white">
-                  {['A型','B型','O型','AB型','不明'].map(t => <option key={t}>{t}</option>)}
+                <label className="block text-xs font-black text-[#7A8E80] mb-1">血液型</label>
+                <select value={form.blood_type} onChange={e => setForm({ ...form, blood_type: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none bg-white">
+                  {['A型', 'B型', 'O型', 'AB型', '不明'].map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">エピペン所持</label>
+              <label className="block text-xs font-black text-[#7A8E80] mb-2">エピペン所持</label>
               <div className="flex gap-2">
-                <button onClick={() => setForm({...form, has_epipen: true})}
-                  className={`flex-1 py-3 rounded-xl font-bold text-sm ${form.has_epipen ? 'bg-[#FCEAEA] text-[#B83030] border-2 border-[#B83030]' : 'bg-[#F4F7F5] text-[#7A8E80] border border-[#E0EAE2]'}`}>
-                  💉 あり
-                </button>
-                <button onClick={() => setForm({...form, has_epipen: false})}
-                  className={`flex-1 py-3 rounded-xl font-bold text-sm ${!form.has_epipen ? 'bg-[#E6F4EC] text-[#1A6640] border-2 border-[#1A6640]' : 'bg-[#F4F7F5] text-[#7A8E80] border border-[#E0EAE2]'}`}>
-                  なし
-                </button>
+                <button onClick={() => setForm({ ...form, has_epipen: true })} className={"flex-1 py-3 rounded-xl font-bold text-sm " + (form.has_epipen ? 'bg-[#FCEAEA] text-[#B83030] border-2 border-[#B83030]' : 'bg-[#F4F7F5] text-[#7A8E80] border border-[#E0EAE2]')}>💉 あり</button>
+                <button onClick={() => setForm({ ...form, has_epipen: false })} className={"flex-1 py-3 rounded-xl font-bold text-sm " + (!form.has_epipen ? 'bg-[#E6F4EC] text-[#1A6640] border-2 border-[#1A6640]' : 'bg-[#F4F7F5] text-[#7A8E80] border border-[#E0EAE2]')}>なし</button>
               </div>
             </div>
             {form.has_epipen && (
               <div>
-                <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">保管場所</label>
-                <input value={form.epipen_location} onChange={e => setForm({...form, epipen_location: e.target.value})}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
-                  placeholder="例：バッグ内・赤いポーチ" />
+                <label className="block text-xs font-black text-[#7A8E80] mb-1">保管場所</label>
+                <input value={form.epipen_location} onChange={e => setForm({ ...form, epipen_location: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="例：バッグ内・赤いポーチ" />
               </div>
             )}
           </div>
@@ -178,23 +165,16 @@ export default function EditPage({ params }: { params: { id: string } }) {
             {allergies.map(a => (
               <div key={a.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-between mb-3">
-                  <select value={a.severity} onChange={e => updateAllergy(a.id, 'severity', e.target.value)}
-                    className="border border-[#E0EAE2] rounded-lg px-3 py-1 text-xs font-bold bg-white outline-none">
-                    {['重篤','中程度','軽度'].map(s => <option key={s}>{s}</option>)}
+                  <select value={a.severity} onChange={e => updateAllergy(a.id, 'severity', e.target.value)} className="border border-[#E0EAE2] rounded-lg px-3 py-1 text-xs font-bold bg-white outline-none">
+                    {['重篤', '中程度', '軽度'].map(s => <option key={s}>{s}</option>)}
                   </select>
                   <button onClick={() => deleteAllergy(a.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
                 </div>
-                <input value={a.name} onChange={e => updateAllergy(a.id, 'name', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2"
-                  placeholder="アレルゲン名（例：ピーナッツ）" />
-                <input value={a.action} onChange={e => updateAllergy(a.id, 'action', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
-                  placeholder="対応方法" />
+                <input value={a.name} onChange={e => updateAllergy(a.id, 'name', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="アレルゲン名" />
+                <input value={a.action} onChange={e => updateAllergy(a.id, 'action', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="対応方法" />
               </div>
             ))}
-            <button onClick={addAllergy} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">
-              ＋ アレルゲンを追加
-            </button>
+            <button onClick={addAllergy} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ アレルゲンを追加</button>
           </div>
         )}
 
@@ -205,27 +185,19 @@ export default function EditPage({ params }: { params: { id: string } }) {
                 <div className="flex justify-end mb-3">
                   <button onClick={() => deleteCondition(c.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
                 </div>
-                <input value={c.name} onChange={e => updateCondition(c.id, 'name', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2"
-                  placeholder="持病・既往歴（例：気管支喘息）" />
-                <input value={c.note} onChange={e => updateCondition(c.id, 'note', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
-                  placeholder="注意事項" />
+                <input value={c.name} onChange={e => updateCondition(c.id, 'name', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="持病・既往歴" />
+                <input value={c.note} onChange={e => updateCondition(c.id, 'note', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="注意事項" />
               </div>
             ))}
-            <button onClick={addCondition} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">
-              ＋ 持病・既往歴を追加
-            </button>
+            <button onClick={addCondition} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ 持病・既往歴を追加</button>
           </div>
         )}
-
       </div>
 
       {tab === 'basic' && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
           <div className="max-w-md mx-auto">
-            <button onClick={handleSave} disabled={saving}
-              className={`w-full py-4 rounded-2xl font-black text-lg text-white ${saved ? 'bg-[#238C56]' : 'bg-[#1A6640]'} disabled:opacity-50`}>
+            <button onClick={handleSave} disabled={saving} className={"w-full py-4 rounded-2xl font-black text-lg text-white " + (saved ? 'bg-[#238C56]' : 'bg-[#1A6640]') + " disabled:opacity-50"}>
               {saved ? '✓ 保存しました' : saving ? '保存中...' : '変更を保存する'}
             </button>
           </div>
