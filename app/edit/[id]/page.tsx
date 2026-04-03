@@ -179,4 +179,4 @@ export default function EditPage({ params }: { params: { id: string } }) {
               <div key={a.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-between mb-3">
                   <select value={a.severity} onChange={e => updateAllergy(a.id, 'severity', e.target.value)}
-                    className="border border-[#E0EAE2] rounded-lg
+                    className="border border-[#E0EAE2] rounded-lg px-3 py-1 text-xs font-bold bg-white outline-none"
