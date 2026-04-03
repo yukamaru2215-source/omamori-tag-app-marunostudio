@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { ChildFull } from '@/lib/types'
+import { supabase } from '@/app/lib/supabase'
+import { ChildFull } from '@/app/lib/types'
 
 export default function KidPage({ params }: { params: { slug: string } }) {
   const [child, setChild] = useState<ChildFull | null>(null)
