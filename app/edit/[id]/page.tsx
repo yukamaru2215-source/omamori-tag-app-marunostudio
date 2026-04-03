@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-// 修正前：import { supabase } from '@/app/lib/supabase'
-// 修正後：2つ上の階層（[id] -> edit -> app）にある lib を見に行く
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -111,7 +109,6 @@ export default function EditPage({ params }: { params: { id: string } }) {
           <div className="font-black text-xl text-[#0E1A12]">情報を編集</div>
         </div>
 
-        {/* タブ */}
         <div className="flex gap-2 mb-4">
           {([['basic','基本情報'],['allergy','アレルギー'],['condition','持病']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
@@ -121,7 +118,6 @@ export default function EditPage({ params }: { params: { id: string } }) {
           ))}
         </div>
 
-        {/* 基本情報 */}
         {tab === 'basic' && (
           <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm space-y-4">
             <div>
@@ -177,67 +173,10 @@ export default function EditPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* アレルギー */}
         {tab === 'allergy' && (
           <div className="space-y-3">
             {allergies.map(a => (
               <div key={a.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-between mb-3">
                   <select value={a.severity} onChange={e => updateAllergy(a.id, 'severity', e.target.value)}
-                    className="border border-[#E0EAE2] rounded-lg px-3 py-1 text-xs font-bold bg-white outline-none">
-                    {['重篤','中程度','軽度'].map(s => <option key={s}>{s}</option>)}
-                  </select>
-                  <button onClick={() => deleteAllergy(a.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
-                </div>
-                <input value={a.name} onChange={e => updateAllergy(a.id, 'name', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2"
-                  placeholder="アレルゲン名（例：ピーナッツ）" />
-                <input value={a.action} onChange={e => updateAllergy(a.id, 'action', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
-                  placeholder="対応方法" />
-              </div>
-            ))}
-            <button onClick={addAllergy} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">
-              ＋ アレルゲンを追加
-            </button>
-          </div>
-        )}
-
-        {/* 持病 */}
-        {tab === 'condition' && (
-          <div className="space-y-3">
-            {conditions.map(c => (
-              <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
-                <div className="flex justify-end mb-3">
-                  <button onClick={() => deleteCondition(c.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
-                </div>
-                <input value={c.name} onChange={e => updateCondition(c.id, 'name', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2"
-                  placeholder="持病・既往歴（例：気管支喘息）" />
-                <input value={c.note} onChange={e => updateCondition(c.id, 'note', e.target.value)}
-                  className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
-                  placeholder="注意事項" />
-              </div>
-            ))}
-            <button onClick={addCondition} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">
-              ＋ 持病・既往歴を追加
-            </button>
-          </div>
-        )}
-
-      </div>
-
-      {/* 保存ボタン（基本情報タブのみ） */}
-      {tab === 'basic' && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
-          <div className="max-w-md mx-auto">
-            <button onClick={handleSave} disabled={saving}
-              className={`w-full py-4 rounded-2xl font-black text-lg text-white ${saved ? 'bg-[#238C56]' : 'bg-[#1A6640]'} disabled:opacity-50`}>
-              {saved ? '✓ 保存しました' : saving ? '保存中...' : '変更を保存する'}
-            </button>
-          </div>
-        </div>
-      )}
-    </main>
-  )
-}
+                    className="border border-[#E0EAE2] rounded-lg
