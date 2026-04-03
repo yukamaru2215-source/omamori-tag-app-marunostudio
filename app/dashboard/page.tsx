@@ -21,3 +21,5 @@ export default function DashboardPage() {
       }
 
       const { data: { session } } = await supabase.auth.getSession()
+      }
+      
