@@ -20,4 +20,4 @@ export default function DashboardPage() {
         window.history.replaceState(null, '', window.location.pathname)
       }
 
-      const { data: { session } } =
+      const { data: { session } } = await supabase.auth.getSession()
