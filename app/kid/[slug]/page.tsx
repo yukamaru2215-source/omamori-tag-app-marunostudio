@@ -17,7 +17,7 @@ export default function KidPage({ params }: { params: { slug: string } }) {
     const { data, error } = await supabase
       .from('children')
       .select(`*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)`)
-      .eq('id', params.slug)
+      .eq('slug', params.slug)
       .single()
     console.log('data:', data)
     console.log('error:', error)
