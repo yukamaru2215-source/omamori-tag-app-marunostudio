@@ -1,13 +1,11 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   typescript: {
-    // !! 警告 !!
-    // プロジェクトに型エラーがあっても、ビルドを強制的に進めます。
+    // 型エラーがあっても無視してビルドを成功させる（魔法の呪文）
     ignoreBuildErrors: true,
   },
   eslint: {
-    // ビルド時のESLintチェックもスキップ
+    // エラーチェックを無視してビルドを成功させる
     ignoreDuringBuilds: true,
   },
 };
