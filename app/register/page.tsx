@@ -7,27 +7,20 @@ import { supabase } from '@/lib/supabase'
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({
-    display_name: '',
-    full_name: '',
-    kana: '',
-    age: '',
-    blood_type: '不明',
-    has_epipen: false,
-    epipen_location: '',
-  })
+  const [displayName, setDisplayName] = useState('')
+  const [age, setAge] = useState('')
 
   async function handleSubmit() {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/login'); return }
-
     const { error } = await supabase.from('children').insert({
-      ...form,
+      display_name: displayName,
+      age: age,
       parent_id: session.user.id,
       nursery_id: null,
+      has_epipen: false,
     })
-
     if (!error) router.push('/dashboard')
     else { alert('エラーが発生しました'); setLoading(false) }
   }
@@ -41,6 +34,27 @@ export default function RegisterPage() {
         </div>
         <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm space-y-4">
           <div>
-            <label className="block text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">呼び名 *</label>
-            <input value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})}
+            <label className="block text-xs font-black text-[#7A8E80] mb-1">呼び名 *</label>
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)}
               className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
+              placeholder="例：ゆき" />
+          </div>
+          <div>
+            <label className="block text-xs font-black text-[#7A8E80] mb-1">年齢 *</label>
+            <input value={age} onChange={e => setAge(e.target.value)}
+              className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none"
+              placeholder="例：5歳" />
+          </div>
+        </div>
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
+        <div className="max-w-md mx-auto">
+          <button onClick={handleSubmit} disabled={loading || !displayName || !age}
+            className="w-full bg-[#1A6640] text-white py-4 rounded-2xl font-black text-lg disabled:opacity-50">
+            {loading ? '登録中...' : '登録する'}
+          </button>
+        </div>
+      </div>
+    </main>
+  )
+}
