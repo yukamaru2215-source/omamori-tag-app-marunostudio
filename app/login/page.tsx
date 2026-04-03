@@ -1,6 +1,8 @@
 'use client'
 
-import { supabase } from '@/app/lib/supabase'
+// 修正前：import { supabase } from '@/app/lib/supabase'
+// 修正後：1つ上の階層にある lib フォルダを見に行く
+import { createClient } from '../lib/supabase'
 
 export default function LoginPage() {
   async function handleGoogleLogin() {
