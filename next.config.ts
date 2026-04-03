@@ -1,12 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
-
-export default nextConfig;
-import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
-  /* 設定は空っぽでOKです */
+  // ここは空っぽで大丈夫です
 };
 
 export default nextConfig;
