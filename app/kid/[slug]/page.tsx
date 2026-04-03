@@ -1,13 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { ChildFull } from '@/lib/types'
 
 export default function KidPage({ params }: { params: { slug: string } }) {
+  const router = useRouter()
   const [child, setChild] = useState<ChildFull | null>(null)
   const [loading, setLoading] = useState(true)
-  const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done' | 'cooldown'>('idle')
+  const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
 
   useEffect(() => {
   async function fetchChild() {
@@ -23,12 +26,10 @@ export default function KidPage({ params }: { params: { slug: string } }) {
   }
   fetchChild()
 }, [params.slug])
-  }, [params.slug])
 
   async function sendNotify() {
     if (!child) return
     setNotifyState('sending')
-
     let lat = null, lng = null
     try {
       const pos = await new Promise<GeolocationPosition>((res, rej) =>
@@ -37,11 +38,7 @@ export default function KidPage({ params }: { params: { slug: string } }) {
       lat = pos.coords.latitude
       lng = pos.coords.longitude
     } catch {}
-
-    await supabase.from('notification_logs').insert({
-      child_id: child.id, lat, lng
-    })
-
+    await supabase.from('notification_logs').insert({ child_id: child.id, lat, lng })
     setNotifyState('done')
   }
 
@@ -53,7 +50,7 @@ export default function KidPage({ params }: { params: { slug: string } }) {
 
   if (!child) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
-      <div className="text-[#7A8E80]">園児情報が見つかりません</div>
+      <div className="text-[#7A8E80]">情報が見つかりません</div>
     </main>
   )
 
@@ -68,6 +65,11 @@ export default function KidPage({ params }: { params: { slug: string } }) {
       )}
 
       <div className="max-w-md mx-auto p-4 pb-16">
+        <div className="flex items-center gap-3 py-4 mb-2">
+          <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
+          <div className="font-black text-xl text-[#0E1A12]">{child.display_name} の医療情報</div>
+        </div>
+
         {/* プロフィール */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E0EAE2] mb-4 flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl">👧</div>
@@ -76,12 +78,8 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             <div className="text-xs text-[#7A8E80] mt-1">{child.kana}</div>
             <div className="flex gap-2 mt-2 flex-wrap">
               <span className="text-xs bg-[#E6F4EC] text-[#1A6640] px-2 py-1 rounded-full font-bold">{child.age}</span>
-              {child.blood_type && (
-                <span className="text-xs bg-[#EBF0FA] text-[#1A50A0] px-2 py-1 rounded-full font-bold">血液型 {child.blood_type}</span>
-              )}
-              {child.has_epipen && (
-                <span className="text-xs bg-[#FCEAEA] text-[#B83030] px-2 py-1 rounded-full font-bold">💉 エピペン所持</span>
-              )}
+              {child.blood_type && <span className="text-xs bg-[#EBF0FA] text-[#1A50A0] px-2 py-1 rounded-full font-bold">血液型 {child.blood_type}</span>}
+              {child.has_epipen && <span className="text-xs bg-[#FCEAEA] text-[#B83030] px-2 py-1 rounded-full font-bold">💉 エピペン所持</span>}
             </div>
           </div>
         </div>
@@ -94,13 +92,9 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             </div>
             {child.allergies.map((a, i) => (
               <div key={a.id} className={`p-4 ${i < child.allergies.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="font-black text-[#0E1A12]">{a.name}</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    a.severity === '重篤' ? 'bg-[#FCEAEA] text-[#B83030]' :
-                    a.severity === '中程度' ? 'bg-[#FDF5E4] text-[#926010]' :
-                    'bg-[#E6F4EC] text-[#1A6640]'
-                  }`}>{a.severity}</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${a.severity === '重篤' ? 'bg-[#FCEAEA] text-[#B83030]' : a.severity === '中程度' ? 'bg-[#FDF5E4] text-[#926010]' : 'bg-[#E6F4EC] text-[#1A6640]'}`}>{a.severity}</span>
                 </div>
                 <div className="text-sm text-[#5A6E62]">{a.action}</div>
               </div>
@@ -124,19 +118,22 @@ export default function KidPage({ params }: { params: { slug: string } }) {
         )}
 
         {/* エピペン */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-6 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
           <div className="px-4 py-3 bg-[#FCEAEA] border-b border-[#E8AAAA]">
             <span className="text-xs font-black text-[#B83030] uppercase tracking-widest">💉 エピペン</span>
           </div>
-          <div className="p-4">
+          <div className="p-4 flex items-center gap-3 flex-wrap">
             <span className={`font-bold px-4 py-2 rounded-xl ${child.has_epipen ? 'bg-[#FCEAEA] text-[#B83030]' : 'bg-[#F2F4F2] text-[#7A8E80]'}`}>
               {child.has_epipen ? '✓ 所持あり' : '所持なし'}
             </span>
+            {child.has_epipen && child.epipen_location && (
+              <span className="text-sm text-[#7A8E80]">📍 {child.epipen_location}</span>
+            )}
           </div>
         </div>
 
         {/* 緊急通知 */}
-        <div className={`rounded-2xl p-5 border ${notifyState === 'done' ? 'bg-[#E6F4EC] border-[#C2D4C6]' : 'bg-[#FCEAEA] border-[#E8AAAA]'}`}>
+        <div className={`rounded-2xl p-5 border mb-4 ${notifyState === 'done' ? 'bg-[#E6F4EC] border-[#C2D4C6]' : 'bg-[#FCEAEA] border-[#E8AAAA]'}`}>
           {notifyState === 'done' ? (
             <div className="text-center">
               <div className="text-4xl mb-2">✅</div>
@@ -154,17 +151,15 @@ export default function KidPage({ params }: { params: { slug: string } }) {
           ) : (
             <div className="text-center">
               <div className="text-sm font-bold text-[#B83030] mb-3">この子が危険な状況ですか？</div>
-              <button
-                onClick={() => setNotifyState('confirm')}
-                disabled={notifyState === 'sending'}
-                className="w-full bg-[#B83030] text-white py-4 rounded-xl font-black text-lg"
-              >
+              <button onClick={() => setNotifyState('confirm')} disabled={notifyState === 'sending'} className="w-full bg-[#B83030] text-white py-4 rounded-xl font-black text-lg">
                 🚨 緊急通知を保護者に送る
               </button>
               <div className="text-xs text-[#7A8E80] mt-2">電話番号など個人情報は表示されません</div>
             </div>
           )}
         </div>
+
+        <Link href="/dashboard" className="block text-center text-sm text-[#7A8E80]">← ダッシュボードに戻る</Link>
       </div>
     </main>
   )
