@@ -10,21 +10,19 @@ export default function KidPage({ params }: { params: { slug: string } }) {
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done' | 'cooldown'>('idle')
 
   useEffect(() => {
-    async function fetchChild() {
-      const { data, error } = await supabase
-        .from('children')
-        .select(`
-          *,
-          allergies ( * ),
-          conditions ( * )
-        `)
-        .eq('slug', params.slug)
-        .single()
-
-      if (!error && data) setChild(data)
-      setLoading(false)
-    }
-    fetchChild()
+  async function fetchChild() {
+    const { data, error } = await supabase
+      .from('children')
+      .select(`*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)`)
+      .eq('slug', params.slug)
+      .single()
+    console.log('data:', data)
+    console.log('error:', error)
+    if (!error && data) setChild(data)
+    setLoading(false)
+  }
+  fetchChild()
+}, [params.slug])
   }, [params.slug])
 
   async function sendNotify() {
