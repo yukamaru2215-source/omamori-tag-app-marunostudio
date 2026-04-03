@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/app/lib/supabase'
+// 修正前：import { supabase } from '@/app/lib/supabase'
+// 修正後：2つ上の階層（[id] -> edit -> app）にある lib を見に行く
+import { createClient } from '../../lib/supabase'
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const router = useRouter()
