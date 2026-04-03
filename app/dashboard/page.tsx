@@ -2,9 +2,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-// ↓ 同じ app フォルダ内（1つ上）なので、この書き方に固定します
-import { createClient } from '../lib/supabase'
-import { Child } from '../lib/types'
+import { createClient } from '@/lib/supabase'
+import { Child } from '@/lib/types'
 
 export default function DashboardPage() {
   const router = useRouter()

@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-// 修正前：import { supabase } from '@/app/lib/supabase'
-// 修正後：2つ上の階層（[slug] -> kid -> app）にある lib を見に行く
-import { createClient } from '../../lib/supabase'
+import { createClient } from '@/lib/supabase'
+import { ChildFull } from '@/lib/types'
 import { ChildFull } from '../../lib/types'
 
 export default function KidPage({ params }: { params: { slug: string } }) {
