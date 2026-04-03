@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/app/lib/supabase'
+// 修正前：import { supabase } from '@/app/lib/supabase'
+// 修正後：同じ app フォルダ内の 1つ上にある lib を見に行く
+import { createClient } from '../lib/supabase'
 
 export default function RegisterPage() {
   const router = useRouter()
