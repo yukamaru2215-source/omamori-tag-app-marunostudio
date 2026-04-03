@@ -2,9 +2,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-// ↓ ここを「@/」ではなく「../../」に直しました
-import { createClient } from '../../lib/supabase'
-import { Child } from '../../lib/types'
+// @/ に戻します（これがNext.jsの標準です）
+import { createClient } from '@/lib/supabase'
+import { Child } from '@/lib/types'
 
 export default function DashboardPage() {
   const router = useRouter()
