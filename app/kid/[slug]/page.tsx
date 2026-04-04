@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { ChildFull } from '@/lib/types'
 
-export default function KidPage({ params }: { params: { slug: string } }) {
+export default function KidPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
   const router = useRouter()
   const [child, setChild] = useState<ChildFull | null>(null)
   const [loading, setLoading] = useState(true)
@@ -17,13 +18,13 @@ export default function KidPage({ params }: { params: { slug: string } }) {
       const { data, error } = await supabase
         .from('children')
         .select('*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)')
-        .eq('slug', params.slug)
+        .eq('slug', slug)
         .single()
       if (!error && data) setChild(data)
       setLoading(false)
     }
     fetchChild()
-  }, [params.slug])
+  }, [slug])
 
   async function sendNotify() {
     if (!child) return
