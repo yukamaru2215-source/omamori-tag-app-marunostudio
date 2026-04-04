@@ -12,6 +12,22 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   const [child, setChild] = useState<ChildFull | null>(null)
   const [loading, setLoading] = useState(true)
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
+  const [staffAuthed, setStaffAuthed] = useState(false)
+  const [staffNurseryId, setStaffNurseryId] = useState<string | null>(null)
+
+  useEffect(() => {
+    // 保育士セッション確認
+    const raw = sessionStorage.getItem('staff_token')
+    if (raw) {
+      const { token, expiresAt, nurseryId } = JSON.parse(raw)
+      if (new Date(expiresAt) > new Date()) {
+        setStaffAuthed(true)
+        setStaffNurseryId(nurseryId)
+      } else {
+        sessionStorage.removeItem('staff_token')
+      }
+    }
+  }, [])
 
   useEffect(() => {
     async function fetchChild() {
@@ -66,7 +82,10 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         <div className="flex items-center gap-3 py-4 mb-2">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
           <div className="font-black text-xl text-[#0E1A12]">{child.display_name} の医療情報</div>
+          {staffAuthed && <span className="ml-auto text-xs bg-[#E6F4EC] text-[#1A6640] px-2 py-1 rounded-full font-bold">👩‍🏫 保育士</span>}
         </div>
+
+        {/* プロフィール */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E0EAE2] mb-4 flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl">👧</div>
           <div>
@@ -79,6 +98,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             </div>
           </div>
         </div>
+
+        {/* アレルギー */}
         {child.allergies && child.allergies.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
             <div className="px-4 py-3 bg-[#FCEAEA] border-b border-[#E8AAAA]">
@@ -95,6 +116,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             ))}
           </div>
         )}
+
+        {/* 持病 */}
         {child.conditions && child.conditions.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
             <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
@@ -108,6 +131,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             ))}
           </div>
         )}
+
+        {/* エピペン */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
           <div className="px-4 py-3 bg-[#FCEAEA] border-b border-[#E8AAAA]">
             <span className="text-xs font-black text-[#B83030] uppercase tracking-widest">💉 エピペン</span>
@@ -116,11 +141,88 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             <span className={`font-bold px-4 py-2 rounded-xl ${child.has_epipen ? 'bg-[#FCEAEA] text-[#B83030]' : 'bg-[#F2F4F2] text-[#7A8E80]'}`}>
               {child.has_epipen ? '✓ 所持あり' : '所持なし'}
             </span>
-            {child.has_epipen && child.epipen_location && (
+            {staffAuthed && child.has_epipen && child.epipen_location && (
               <span className="text-sm text-[#7A8E80]">📍 {child.epipen_location}</span>
             )}
           </div>
         </div>
+
+        {/* 保育士認証済みの場合：詳細情報 */}
+        {staffAuthed && (
+          <>
+            {/* 持薬 */}
+            {child.medications && child.medications.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+                <div className="px-4 py-3 bg-[#FDF5E4] border-b border-[#E8C880]">
+                  <span className="text-xs font-black text-[#926010] uppercase tracking-widest">💊 持薬・医療器具</span>
+                </div>
+                {child.medications.map((m, i) => (
+                  <div key={m.id} className={`p-4 ${i < child.medications.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
+                    <div className="font-bold text-[#0E1A12] mb-1">{m.name}</div>
+                    <div className="text-sm text-[#7A8E80]">📍 {m.location}</div>
+                    <div className="text-sm text-[#7A8E80]">{m.dosage}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 緊急連絡先 */}
+            {child.emergency_contacts && child.emergency_contacts.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+                <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
+                  <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">📞 緊急連絡先</span>
+                </div>
+                {child.emergency_contacts.map((c, i) => (
+                  <div key={c.id} className={`p-4 ${i < child.emergency_contacts.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-[#0E1A12]">{c.label}</div>
+                        <div className="text-xs text-[#7A8E80]">{c.relation}</div>
+                      </div>
+                      <a href={`tel:${c.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
+                        📞 {c.phone}
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* かかりつけ医 */}
+            {child.doctors && child.doctors.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+                <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
+                  <span className="text-xs font-black text-[#1A50A0] uppercase tracking-widest">🏥 かかりつけ医</span>
+                </div>
+                {child.doctors.map((d, i) => (
+                  <div key={d.id} className={`p-4 ${i < child.doctors.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
+                    <div className="font-bold text-[#0E1A12] mb-1">{d.name}</div>
+                    <div className="text-sm text-[#7A8E80]">{d.address}</div>
+                    <div className="text-sm text-[#7A8E80]">{d.note}</div>
+                    {d.phone && (
+                      <a href={`tel:${d.phone.replace(/-/g, '')}`} className="inline-block mt-2 bg-[#EBF0FA] text-[#1A50A0] px-4 py-2 rounded-xl font-bold text-sm">
+                        📞 {d.phone}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 保育士認証ボタン（未認証の場合） */}
+        {!staffAuthed && (
+          <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
+            <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 保育士の方へ</div>
+            <div className="text-sm text-[#7A8E80] mb-3">保育士用NFCタグをかざすと緊急連絡先・持薬などの詳細情報を確認できます</div>
+            <div className="text-xs text-[#7A8E80] bg-[#F4F7F5] rounded-xl p-3">
+              保育士用NFCタグ → PINコード入力 → 詳細表示
+            </div>
+          </div>
+        )}
+
+        {/* 緊急通知 */}
         <div className={`rounded-2xl p-5 border mb-4 ${notifyState === 'done' ? 'bg-[#E6F4EC] border-[#C2D4C6]' : 'bg-[#FCEAEA] border-[#E8AAAA]'}`}>
           {notifyState === 'done' ? (
             <div className="text-center">
@@ -146,6 +248,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             </div>
           )}
         </div>
+
         <Link href="/dashboard" className="block text-center text-sm text-[#7A8E80]">← ダッシュボードに戻る</Link>
       </div>
     </main>
