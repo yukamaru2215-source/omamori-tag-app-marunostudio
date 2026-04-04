@@ -66,9 +66,7 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
             <button onClick={() => copyUrl(kidUrl)} className="flex-1 bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm">
               {copied ? '✓ コピーしました' : '📋 URLをコピー'}
             </button>
-            <a href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(kidUrl)}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm text-center">
-              📱 QRコード
-            </a>
+            <a href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(kidUrl)}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm text-center">📱 QRコード</a>
           </div>
         </div>
 
