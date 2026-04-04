@@ -13,19 +13,17 @@ export default function KidPage({ params }: { params: { slug: string } }) {
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
 
   useEffect(() => {
-  async function fetchChild() {
-    const { data, error } = await supabase
-      .from('children')
-      .select(`*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)`)
-      .eq('slug', params.slug)
-      .single()
-    console.log('data:', data)
-    console.log('error:', error)
-    if (!error && data) setChild(data)
-    setLoading(false)
-  }
-  fetchChild()
-}, [params.slug])
+    async function fetchChild() {
+      const { data, error } = await supabase
+        .from('children')
+        .select('*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)')
+        .eq('slug', params.slug)
+        .single()
+      if (!error && data) setChild(data)
+      setLoading(false)
+    }
+    fetchChild()
+  }, [params.slug])
 
   async function sendNotify() {
     if (!child) return
@@ -63,14 +61,11 @@ export default function KidPage({ params }: { params: { slug: string } }) {
           ⚠️ 重篤なアレルギーがあります
         </div>
       )}
-
       <div className="max-w-md mx-auto p-4 pb-16">
         <div className="flex items-center gap-3 py-4 mb-2">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
           <div className="font-black text-xl text-[#0E1A12]">{child.display_name} の医療情報</div>
         </div>
-
-        {/* プロフィール */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E0EAE2] mb-4 flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl">👧</div>
           <div>
@@ -83,8 +78,6 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             </div>
           </div>
         </div>
-
-        {/* アレルギー */}
         {child.allergies && child.allergies.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
             <div className="px-4 py-3 bg-[#FCEAEA] border-b border-[#E8AAAA]">
@@ -101,8 +94,6 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             ))}
           </div>
         )}
-
-        {/* 持病 */}
         {child.conditions && child.conditions.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
             <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
@@ -116,8 +107,6 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             ))}
           </div>
         )}
-
-        {/* エピペン */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
           <div className="px-4 py-3 bg-[#FCEAEA] border-b border-[#E8AAAA]">
             <span className="text-xs font-black text-[#B83030] uppercase tracking-widest">💉 エピペン</span>
@@ -131,8 +120,6 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             )}
           </div>
         </div>
-
-        {/* 緊急通知 */}
         <div className={`rounded-2xl p-5 border mb-4 ${notifyState === 'done' ? 'bg-[#E6F4EC] border-[#C2D4C6]' : 'bg-[#FCEAEA] border-[#E8AAAA]'}`}>
           {notifyState === 'done' ? (
             <div className="text-center">
@@ -158,7 +145,6 @@ export default function KidPage({ params }: { params: { slug: string } }) {
             </div>
           )}
         </div>
-
         <Link href="/dashboard" className="block text-center text-sm text-[#7A8E80]">← ダッシュボードに戻る</Link>
       </div>
     </main>
