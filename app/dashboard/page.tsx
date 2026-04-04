@@ -74,14 +74,17 @@ export default function DashboardPage() {
                   <div className="text-xs text-[#7A8E80]">{child.age}</div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Link href={`/kid/${child.slug}`} className="flex-1 text-center bg-[#E6F4EC] text-[#1A6640] py-2 rounded-xl text-sm font-bold">
-                  情報を見る
-                </Link>
-                <Link href={`/edit/${child.id}`} className="flex-1 text-center bg-[#F4F7F5] text-[#3A4A3E] py-2 rounded-xl text-sm font-bold border border-[#E0EAE2]">
-                  編集する
-                </Link>
-              </div>
+              <div className="flex gap-2 flex-wrap">
+<Link href={`/kid/${child.slug}`} className="flex-1 text-center bg-[#E6F4EC] text-[#1A6640] py-2 rounded-xl text-sm font-bold">
+    情報を見る
+  </Link>
+  <Link href={`/edit/${child.id}`} className="flex-1 text-center bg-[#F4F7F5] text-[#3A4A3E] py-2 rounded-xl text-sm font-bold border border-[#E0EAE2]">
+    編集する
+  </Link>
+  <Link href={`/nfc/${child.id}`} className="w-full text-center bg-[#EBF0FA] text-[#1A50A0] py-2 rounded-xl text-sm font-bold border border-[#A0BCE8]">
+    🏷️ NFCタグ / QR
+  </Link>
+</div>
             </div>
           ))
         )}
