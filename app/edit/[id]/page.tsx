@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Allergy, Condition } from '@/lib/types'
+import { Allergy, Condition, Medication, EmergencyContact, Doctor } from '@/lib/types'
 
 export default function EditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -11,18 +11,16 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition'>('basic')
+  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor'>('basic')
   const [form, setForm] = useState({
-    display_name: '',
-    full_name: '',
-    kana: '',
-    age: '',
-    blood_type: '不明',
-    has_epipen: false,
-    epipen_location: '',
+    display_name: '', full_name: '', kana: '', age: '',
+    blood_type: '不明', has_epipen: false, epipen_location: '',
   })
   const [allergies, setAllergies] = useState<Allergy[]>([])
   const [conditions, setConditions] = useState<Condition[]>([])
+  const [medications, setMedications] = useState<Medication[]>([])
+  const [contacts, setContacts] = useState<EmergencyContact[]>([])
+  const [doctors, setDoctors] = useState<Doctor[]>([])
 
   useEffect(() => {
     async function load() {
@@ -30,7 +28,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
       if (!session) { router.push('/login'); return }
       const { data } = await supabase
         .from('children')
-        .select('*, allergies(*), conditions(*)')
+        .select('*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)')
         .eq('id', id)
         .eq('parent_id', session.user.id)
         .single()
@@ -46,6 +44,9 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
       })
       setAllergies(data.allergies ?? [])
       setConditions(data.conditions ?? [])
+      setMedications(data.medications ?? [])
+      setContacts(data.emergency_contacts ?? [])
+      setDoctors(data.doctors ?? [])
       setLoading(false)
     }
     load()
@@ -59,42 +60,74 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     setSaving(false)
   }
 
+  // Allergy
   async function addAllergy() {
-    const { data } = await supabase
-      .from('allergies')
-      .insert({ child_id: id, name: '', severity: '軽度', action: '' })
-      .select()
-      .single()
+    const { data } = await supabase.from('allergies').insert({ child_id: id, name: '', severity: '軽度', action: '' }).select().single()
     if (data) setAllergies([...allergies, data])
   }
-
   async function updateAllergy(aid: string, key: string, value: string) {
     setAllergies(allergies.map(a => a.id === aid ? { ...a, [key]: value } : a))
     await supabase.from('allergies').update({ [key]: value }).eq('id', aid)
   }
-
   async function deleteAllergy(aid: string) {
     setAllergies(allergies.filter(a => a.id !== aid))
     await supabase.from('allergies').delete().eq('id', aid)
   }
 
+  // Condition
   async function addCondition() {
-    const { data } = await supabase
-      .from('conditions')
-      .insert({ child_id: id, name: '', note: '' })
-      .select()
-      .single()
+    const { data } = await supabase.from('conditions').insert({ child_id: id, name: '', note: '' }).select().single()
     if (data) setConditions([...conditions, data])
   }
-
   async function updateCondition(cid: string, key: string, value: string) {
     setConditions(conditions.map(c => c.id === cid ? { ...c, [key]: value } : c))
     await supabase.from('conditions').update({ [key]: value }).eq('id', cid)
   }
-
   async function deleteCondition(cid: string) {
     setConditions(conditions.filter(c => c.id !== cid))
     await supabase.from('conditions').delete().eq('id', cid)
+  }
+
+  // Medication
+  async function addMedication() {
+    const { data } = await supabase.from('medications').insert({ child_id: id, name: '', location: '', dosage: '' }).select().single()
+    if (data) setMedications([...medications, data])
+  }
+  async function updateMedication(mid: string, key: string, value: string) {
+    setMedications(medications.map(m => m.id === mid ? { ...m, [key]: value } : m))
+    await supabase.from('medications').update({ [key]: value }).eq('id', mid)
+  }
+  async function deleteMedication(mid: string) {
+    setMedications(medications.filter(m => m.id !== mid))
+    await supabase.from('medications').delete().eq('id', mid)
+  }
+
+  // Contact
+  async function addContact() {
+    const { data } = await supabase.from('emergency_contacts').insert({ child_id: id, label: '', phone: '', relation: '' }).select().single()
+    if (data) setContacts([...contacts, data])
+  }
+  async function updateContact(cid: string, key: string, value: string) {
+    setContacts(contacts.map(c => c.id === cid ? { ...c, [key]: value } : c))
+    await supabase.from('emergency_contacts').update({ [key]: value }).eq('id', cid)
+  }
+  async function deleteContact(cid: string) {
+    setContacts(contacts.filter(c => c.id !== cid))
+    await supabase.from('emergency_contacts').delete().eq('id', cid)
+  }
+
+  // Doctor
+  async function addDoctor() {
+    const { data } = await supabase.from('doctors').insert({ child_id: id, name: '', phone: '', address: '', note: '' }).select().single()
+    if (data) setDoctors([...doctors, data])
+  }
+  async function updateDoctor(did: string, key: string, value: string) {
+    setDoctors(doctors.map(d => d.id === did ? { ...d, [key]: value } : d))
+    await supabase.from('doctors').update({ [key]: value }).eq('id', did)
+  }
+  async function deleteDoctor(did: string) {
+    setDoctors(doctors.filter(d => d.id !== did))
+    await supabase.from('doctors').delete().eq('id', did)
   }
 
   if (loading) return (
@@ -102,6 +135,15 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
       <div className="text-[#7A8E80]">読み込み中...</div>
     </main>
   )
+
+  const TABS = [
+    { id: 'basic', label: '基本' },
+    { id: 'allergy', label: 'アレルギー' },
+    { id: 'condition', label: '持病' },
+    { id: 'medication', label: '持薬' },
+    { id: 'contact', label: '連絡先' },
+    { id: 'doctor', label: '医師' },
+  ] as const
 
   return (
     <main className="min-h-screen bg-[#F4F7F5] pb-32">
@@ -111,10 +153,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
           <div className="font-black text-xl text-[#0E1A12]">情報を編集</div>
         </div>
 
-        <div className="flex gap-2 mb-4">
-          {(['basic', 'allergy', 'condition'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} className={"flex-1 py-2 rounded-xl text-xs font-bold " + (tab === t ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]')}>
-              {t === 'basic' ? '基本情報' : t === 'allergy' ? 'アレルギー' : '持病'}
+        <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} className={"flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold " + (tab === t.id ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]')}>
+              {t.label}
             </button>
           ))}
         </div>
@@ -191,6 +233,55 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
               </div>
             ))}
             <button onClick={addCondition} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ 持病・既往歴を追加</button>
+          </div>
+        )}
+
+        {tab === 'medication' && (
+          <div className="space-y-3">
+            {medications.map(m => (
+              <div key={m.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
+                <div className="flex justify-end mb-3">
+                  <button onClick={() => deleteMedication(m.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
+                </div>
+                <input value={m.name} onChange={e => updateMedication(m.id, 'name', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="薬・器具名" />
+                <input value={m.location} onChange={e => updateMedication(m.id, 'location', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="保管場所" />
+                <input value={m.dosage} onChange={e => updateMedication(m.id, 'dosage', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="用法・用量" />
+              </div>
+            ))}
+            <button onClick={addMedication} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ 持薬・器具を追加</button>
+          </div>
+        )}
+
+        {tab === 'contact' && (
+          <div className="space-y-3">
+            {contacts.map(c => (
+              <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
+                <div className="flex justify-end mb-3">
+                  <button onClick={() => deleteContact(c.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
+                </div>
+                <input value={c.label} onChange={e => updateContact(c.id, 'label', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="名前・施設名" />
+                <input value={c.relation} onChange={e => updateContact(c.id, 'relation', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="続柄（例：母）" />
+                <input value={c.phone} onChange={e => updateContact(c.id, 'phone', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="電話番号" type="tel" />
+              </div>
+            ))}
+            <button onClick={addContact} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ 緊急連絡先を追加</button>
+          </div>
+        )}
+
+        {tab === 'doctor' && (
+          <div className="space-y-3">
+            {doctors.map(d => (
+              <div key={d.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
+                <div className="flex justify-end mb-3">
+                  <button onClick={() => deleteDoctor(d.id)} className="text-xs text-[#B83030] bg-[#FCEAEA] px-3 py-1 rounded-lg font-bold">削除</button>
+                </div>
+                <input value={d.name} onChange={e => updateDoctor(d.id, 'name', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="病院名・医師名" />
+                <input value={d.phone} onChange={e => updateDoctor(d.id, 'phone', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="電話番号" type="tel" />
+                <input value={d.address} onChange={e => updateDoctor(d.id, 'address', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none mb-2" placeholder="住所" />
+                <input value={d.note} onChange={e => updateDoctor(d.id, 'note', e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="備考（担当医名など）" />
+              </div>
+            ))}
+            <button onClick={addDoctor} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ かかりつけ医を追加</button>
           </div>
         )}
       </div>
