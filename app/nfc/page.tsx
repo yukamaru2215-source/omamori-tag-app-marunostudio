@@ -75,13 +75,7 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
               {copied ? '✓ コピーしました' : '📋 URLをコピー'}
             </button>
             
-              href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(kidUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm text-center"
-            >
-              📱 QRコードを表示
-            </a>
+              <a href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(kidUrl)}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm text-center">📱 QRコードを表示</a>
           </div>
         </div>
 
