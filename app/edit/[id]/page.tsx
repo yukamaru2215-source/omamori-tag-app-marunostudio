@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Allergy, Condition } from '@/lib/types'
 
-export default function EditPage({ params }: { params: { id: string } }) {
+export default function EditPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -30,7 +31,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
       const { data } = await supabase
         .from('children')
         .select('*, allergies(*), conditions(*)')
-        .eq('id', params.id)
+        .eq('id', id)
         .eq('parent_id', session.user.id)
         .single()
       if (!data) { router.push('/dashboard'); return }
@@ -48,11 +49,11 @@ export default function EditPage({ params }: { params: { id: string } }) {
       setLoading(false)
     }
     load()
-  }, [params.id, router])
+  }, [id, router])
 
   async function handleSave() {
     setSaving(true)
-    await supabase.from('children').update(form).eq('id', params.id)
+    await supabase.from('children').update(form).eq('id', id)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
     setSaving(false)
@@ -61,39 +62,39 @@ export default function EditPage({ params }: { params: { id: string } }) {
   async function addAllergy() {
     const { data } = await supabase
       .from('allergies')
-      .insert({ child_id: params.id, name: '', severity: '軽度', action: '' })
+      .insert({ child_id: id, name: '', severity: '軽度', action: '' })
       .select()
       .single()
     if (data) setAllergies([...allergies, data])
   }
 
-  async function updateAllergy(id: string, key: string, value: string) {
-    setAllergies(allergies.map(a => a.id === id ? { ...a, [key]: value } : a))
-    await supabase.from('allergies').update({ [key]: value }).eq('id', id)
+  async function updateAllergy(aid: string, key: string, value: string) {
+    setAllergies(allergies.map(a => a.id === aid ? { ...a, [key]: value } : a))
+    await supabase.from('allergies').update({ [key]: value }).eq('id', aid)
   }
 
-  async function deleteAllergy(id: string) {
-    setAllergies(allergies.filter(a => a.id !== id))
-    await supabase.from('allergies').delete().eq('id', id)
+  async function deleteAllergy(aid: string) {
+    setAllergies(allergies.filter(a => a.id !== aid))
+    await supabase.from('allergies').delete().eq('id', aid)
   }
 
   async function addCondition() {
     const { data } = await supabase
       .from('conditions')
-      .insert({ child_id: params.id, name: '', note: '' })
+      .insert({ child_id: id, name: '', note: '' })
       .select()
       .single()
     if (data) setConditions([...conditions, data])
   }
 
-  async function updateCondition(id: string, key: string, value: string) {
-    setConditions(conditions.map(c => c.id === id ? { ...c, [key]: value } : c))
-    await supabase.from('conditions').update({ [key]: value }).eq('id', id)
+  async function updateCondition(cid: string, key: string, value: string) {
+    setConditions(conditions.map(c => c.id === cid ? { ...c, [key]: value } : c))
+    await supabase.from('conditions').update({ [key]: value }).eq('id', cid)
   }
 
-  async function deleteCondition(id: string) {
-    setConditions(conditions.filter(c => c.id !== id))
-    await supabase.from('conditions').delete().eq('id', id)
+  async function deleteCondition(cid: string) {
+    setConditions(conditions.filter(c => c.id !== cid))
+    await supabase.from('conditions').delete().eq('id', cid)
   }
 
   if (loading) return (
