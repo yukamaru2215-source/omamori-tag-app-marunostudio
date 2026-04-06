@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -13,19 +13,47 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   const [loading, setLoading] = useState(true)
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
   const [staffAuthed, setStaffAuthed] = useState(false)
-  const [staffNurseryId, setStaffNurseryId] = useState<string | null>(null)
+  const [showPinModal, setShowPinModal] = useState(false)
+  const [pin, setPin] = useState('')
+  const [pinError, setPinError] = useState('')
+  const [pinLoading, setPinLoading] = useState(false)
+  const [pinShake, setPinShake] = useState(false)
 
+  // 保育士セッション確認（このslug限定）
   useEffect(() => {
-    // 保育士セッション確認
     const raw = sessionStorage.getItem('staff_token')
     if (raw) {
-      const { token, expiresAt, nurseryId } = JSON.parse(raw)
-      if (new Date(expiresAt) > new Date()) {
-        setStaffAuthed(true)
-        setStaffNurseryId(nurseryId)
-      } else {
+      try {
+        const { expiresAt, lockedSlug } = JSON.parse(raw)
+        if (new Date(expiresAt) > new Date()) {
+          // lockedSlugがnull（全体認証）またはこのslugと一致する場合のみ有効
+          if (!lockedSlug || lockedSlug === slug) {
+            setStaffAuthed(true)
+          }
+        } else {
+          sessionStorage.removeItem('staff_token')
+        }
+      } catch {}
+    }
+  }, [slug])
+
+  // 30分無操作で自動ログアウト
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    const reset = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
         sessionStorage.removeItem('staff_token')
-      }
+        setStaffAuthed(false)
+      }, 30 * 60 * 1000)
+    }
+    window.addEventListener('touchstart', reset)
+    window.addEventListener('mousemove', reset)
+    reset()
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('touchstart', reset)
+      window.removeEventListener('mousemove', reset)
     }
   }, [])
 
@@ -43,31 +71,78 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   }, [slug])
 
   async function sendNotify() {
-  if (!child) return
-  setNotifyState('sending')
-  let lat = null, lng = null
-  try {
-    const pos = await new Promise<GeolocationPosition>((res, rej) =>
-      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 })
-    )
-    lat = pos.coords.latitude
-    lng = pos.coords.longitude
-  } catch {}
+    if (!child) return
+    setNotifyState('sending')
+    let lat = null, lng = null
+    try {
+      const pos = await new Promise<GeolocationPosition>((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 })
+      )
+      lat = pos.coords.latitude
+      lng = pos.coords.longitude
+    } catch {}
 
-  const res = await fetch('/api/send-emergency', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ childId: child.id, lat, lng }),
-  })
+    const res = await fetch('/api/send-emergency', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ childId: child.id, lat, lng }),
+    })
 
-  if (res.status === 429) {
-    alert('通知は1分に1回のみ送信できます')
-    setNotifyState('idle')
-    return
+    if (res.status === 429) {
+      alert('通知は1分に1回のみ送信できます')
+      setNotifyState('idle')
+      return
+    }
+    setNotifyState('done')
   }
 
-  setNotifyState('done')
-}
+  // PIN入力でアンロック
+  function handlePinDigit(d: string) {
+    if (pin.length >= 4) return
+    const next = pin + d
+    setPin(next)
+    setPinError('')
+    if (next.length === 4) setTimeout(() => verifyPin(next), 200)
+  }
+
+  async function verifyPin(pinValue: string) {
+    if (!child?.nursery_id) {
+      setPinError('この子どもは園に紐づいていません')
+      return
+    }
+    setPinLoading(true)
+
+    const { data, error } = await supabase.rpc('verify_staff_pin_only', {
+      p_nursery_id: child.nursery_id,
+      p_pin: pinValue,
+    })
+
+    setPinLoading(false)
+
+    if (error || !data || data.length === 0) {
+      setPinError('PINが正しくありません')
+      setPinShake(true)
+      setTimeout(() => { setPinShake(false); setPin('') }, 600)
+      return
+    }
+
+    // このslug限定のセッションを保存
+    sessionStorage.setItem('staff_token', JSON.stringify({
+      token: data[0].session_token,
+      expiresAt: data[0].expires_at,
+      nurseryId: child.nursery_id,
+      lockedSlug: slug,
+    }))
+
+    setStaffAuthed(true)
+    setShowPinModal(false)
+    setPin('')
+  }
+
+  function handleStaffLogout() {
+    sessionStorage.removeItem('staff_token')
+    setStaffAuthed(false)
+  }
 
   if (loading) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
@@ -90,16 +165,21 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
           ⚠️ 重篤なアレルギーがあります
         </div>
       )}
+
       <div className="max-w-md mx-auto p-4 pb-16">
         <div className="flex items-center gap-3 py-4 mb-2">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
-          <div className="font-black text-xl text-[#0E1A12]">{child.display_name} の医療情報</div>
-          {staffAuthed && <span className="ml-auto text-xs bg-[#E6F4EC] text-[#1A6640] px-2 py-1 rounded-full font-bold">👩‍🏫 保育士</span>}
+          <div className="font-black text-xl text-[#0E1A12] flex-1">{child.display_name} の医療情報</div>
+          {staffAuthed && (
+            <button onClick={handleStaffLogout} className="text-xs bg-[#E6F4EC] text-[#1A6640] px-3 py-1 rounded-full font-bold border border-[#B8D9C8]">
+              👩‍🏫 認証済 ✕
+            </button>
+          )}
         </div>
 
         {/* プロフィール */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E0EAE2] mb-4 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl">👧</div>
+          <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl flex-shrink-0">👧</div>
           <div>
             <div className="text-2xl font-black text-[#0E1A12]">{child.display_name}</div>
             <div className="text-xs text-[#7A8E80] mt-1">{child.kana}</div>
@@ -159,10 +239,9 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
           </div>
         </div>
 
-        {/* 保育士認証済みの場合：詳細情報 */}
+        {/* 保育士認証済みの詳細情報 */}
         {staffAuthed && (
           <>
-            {/* 持薬 */}
             {child.medications && child.medications.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
                 <div className="px-4 py-3 bg-[#FDF5E4] border-b border-[#E8C880]">
@@ -178,7 +257,6 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               </div>
             )}
 
-            {/* 緊急連絡先 */}
             {child.emergency_contacts && child.emergency_contacts.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
                 <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
@@ -186,7 +264,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
                 </div>
                 {child.emergency_contacts.map((c, i) => (
                   <div key={c.id} className={`p-4 ${i < child.emergency_contacts.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <div>
                         <div className="font-bold text-[#0E1A12]">{c.label}</div>
                         <div className="text-xs text-[#7A8E80]">{c.relation}</div>
@@ -200,7 +278,6 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               </div>
             )}
 
-            {/* かかりつけ医 */}
             {child.doctors && child.doctors.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
                 <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
@@ -224,13 +301,13 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         )}
 
         {/* 保育士認証ボタン（未認証の場合） */}
-        {!staffAuthed && (
+        {!staffAuthed && child.nursery_id && (
           <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
             <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 保育士の方へ</div>
-            <div className="text-sm text-[#7A8E80] mb-3">保育士用NFCタグをかざすと緊急連絡先・持薬などの詳細情報を確認できます</div>
-            <div className="text-xs text-[#7A8E80] bg-[#F4F7F5] rounded-xl p-3">
-              保育士用NFCタグ → PINコード入力 → 詳細表示
-            </div>
+            <div className="text-sm text-[#7A8E80] mb-3">PINを入力すると緊急連絡先・持薬などの詳細情報を確認できます</div>
+            <button onClick={() => setShowPinModal(true)} className="w-full bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm">
+              🔐 保育士認証（PIN入力）
+            </button>
           </div>
         )}
 
@@ -240,7 +317,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             <div className="text-center">
               <div className="text-4xl mb-2">✅</div>
               <div className="font-black text-[#1A6640]">保護者へ通知しました</div>
-              <div className="text-sm text-[#7A8E80] mt-1">保護者に緊急連絡が送信されました</div>
+              <div className="text-sm text-[#7A8E80] mt-1">まもなく連絡が来ます</div>
             </div>
           ) : notifyState === 'confirm' ? (
             <div className="text-center">
@@ -261,8 +338,54 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
           )}
         </div>
 
-        <Link href="/dashboard" className="block text-center text-sm text-[#7A8E80]">← ダッシュボードに戻る</Link>
+        {/* フッター */}
+        <div className="text-center text-xs text-[#7A8E80] space-x-4 py-4">
+          <Link href="/terms" className="underline">利用規約</Link>
+          <Link href="/privacy" className="underline">プライバシーポリシー</Link>
+        </div>
       </div>
+
+      {/* PIN入力モーダル */}
+      {showPinModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl p-8 w-full max-w-md shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="text-4xl mb-3">👩‍🏫</div>
+              <div className="font-black text-xl text-[#0E1A12] mb-1">保育士認証</div>
+              <div className="text-sm text-[#7A8E80]">4桁のPINを入力してください</div>
+            </div>
+
+            <div className={`flex justify-center gap-4 mb-4 ${pinShake ? 'animate-bounce' : ''}`}>
+              {[0,1,2,3].map(i => (
+                <div key={i} className={`w-5 h-5 rounded-full border-2 transition-all ${i < pin.length ? 'bg-[#1A6640] border-[#1A6640]' : 'bg-white border-[#E0EAE2]'}`} />
+              ))}
+            </div>
+
+            {pinError && (
+              <div className="bg-[#FCEAEA] text-[#B83030] text-sm font-bold text-center py-2 rounded-xl mb-4">
+                {pinError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto mb-4">
+              {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((d, i) => (
+                <button key={i}
+                  onClick={() => d === '⌫' ? setPin(p => p.slice(0,-1)) : d !== '' ? handlePinDigit(String(d)) : null}
+                  disabled={pinLoading}
+                  className={`h-14 rounded-2xl font-bold text-xl ${d === '' ? 'invisible' : 'bg-[#F4F7F5] border border-[#E0EAE2] text-[#0E1A12] active:bg-[#E6F4EC] active:scale-95 transition-all'}`}>
+                  {d}
+                </button>
+              ))}
+            </div>
+
+            {pinLoading && <div className="text-center text-sm text-[#7A8E80] mb-3">認証中...</div>}
+
+            <button onClick={() => { setShowPinModal(false); setPin(''); setPinError('') }} className="w-full text-center text-sm text-[#7A8E80] py-2">
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
