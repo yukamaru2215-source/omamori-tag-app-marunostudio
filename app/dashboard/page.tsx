@@ -12,6 +12,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
 
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+  const isAdmin = userEmail === adminEmail
+
   useEffect(() => {
     async function load() {
       if (window.location.hash) {
@@ -55,6 +58,12 @@ export default function DashboardPage() {
           </button>
         </div>
 
+        {isAdmin && (
+          <Link href="/admin" className="block w-full text-center bg-[#EBF0FA] text-[#1A50A0] py-3 rounded-xl font-bold text-sm border border-[#A0BCE8] mb-4">
+            ⚙️ 管理者画面
+          </Link>
+        )}
+
         <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">
           登録済みのお子様
         </div>
@@ -75,16 +84,16 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
-<Link href={`/kid/${child.slug}`} className="flex-1 text-center bg-[#E6F4EC] text-[#1A6640] py-2 rounded-xl text-sm font-bold">
-    情報を見る
-  </Link>
-  <Link href={`/edit/${child.id}`} className="flex-1 text-center bg-[#F4F7F5] text-[#3A4A3E] py-2 rounded-xl text-sm font-bold border border-[#E0EAE2]">
-    編集する
-  </Link>
-  <Link href={`/nfc/${child.id}`} className="w-full text-center bg-[#EBF0FA] text-[#1A50A0] py-2 rounded-xl text-sm font-bold border border-[#A0BCE8]">
-    🏷️ NFCタグ / QR
-  </Link>
-</div>
+                <Link href={`/kid/${child.slug}`} className="flex-1 text-center bg-[#E6F4EC] text-[#1A6640] py-2 rounded-xl text-sm font-bold">
+                  情報を見る
+                </Link>
+                <Link href={`/edit/${child.id}`} className="flex-1 text-center bg-[#F4F7F5] text-[#3A4A3E] py-2 rounded-xl text-sm font-bold border border-[#E0EAE2]">
+                  編集する
+                </Link>
+                <Link href={`/nfc/${child.id}`} className="w-full text-center bg-[#EBF0FA] text-[#1A50A0] py-2 rounded-xl text-sm font-bold border border-[#A0BCE8]">
+                  🏷️ NFCタグ / QR
+                </Link>
+              </div>
             </div>
           ))
         )}
