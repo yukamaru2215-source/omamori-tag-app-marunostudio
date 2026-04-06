@@ -9,8 +9,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [savedTab, setSavedTab] = useState<string | null>(null)
   const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor'>('basic')
   const [form, setForm] = useState({
     display_name: '', full_name: '', kana: '', age: '',
@@ -52,15 +51,12 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     load()
   }, [id, router])
 
-  async function handleSave() {
-    setSaving(true)
+  async function handleSave(tabName: string) {
     await supabase.from('children').update(form).eq('id', id)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-    setSaving(false)
+    setSavedTab(tabName)
+    setTimeout(() => setSavedTab(null), 2000)
   }
 
-  // Allergy
   async function addAllergy() {
     const { data } = await supabase.from('allergies').insert({ child_id: id, name: '', severity: '軽度', action: '' }).select().single()
     if (data) setAllergies([...allergies, data])
@@ -74,7 +70,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     await supabase.from('allergies').delete().eq('id', aid)
   }
 
-  // Condition
   async function addCondition() {
     const { data } = await supabase.from('conditions').insert({ child_id: id, name: '', note: '' }).select().single()
     if (data) setConditions([...conditions, data])
@@ -88,7 +83,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     await supabase.from('conditions').delete().eq('id', cid)
   }
 
-  // Medication
   async function addMedication() {
     const { data } = await supabase.from('medications').insert({ child_id: id, name: '', location: '', dosage: '' }).select().single()
     if (data) setMedications([...medications, data])
@@ -102,7 +96,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     await supabase.from('medications').delete().eq('id', mid)
   }
 
-  // Contact
   async function addContact() {
     const { data } = await supabase.from('emergency_contacts').insert({ child_id: id, label: '', phone: '', relation: '' }).select().single()
     if (data) setContacts([...contacts, data])
@@ -116,7 +109,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     await supabase.from('emergency_contacts').delete().eq('id', cid)
   }
 
-  // Doctor
   async function addDoctor() {
     const { data } = await supabase.from('doctors').insert({ child_id: id, name: '', phone: '', address: '', note: '' }).select().single()
     if (data) setDoctors([...doctors, data])
@@ -144,6 +136,16 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     { id: 'contact', label: '連絡先' },
     { id: 'doctor', label: '医師' },
   ] as const
+
+  const SaveBtn = ({ tabName }: { tabName: string }) => (
+    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
+      <div className="max-w-md mx-auto">
+        <button onClick={() => handleSave(tabName)} className={"w-full py-4 rounded-2xl font-black text-lg text-white " + (savedTab === tabName ? 'bg-[#238C56]' : 'bg-[#1A6640]')}>
+          {savedTab === tabName ? '✓ 保存しました' : '変更を保存する'}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <main className="min-h-screen bg-[#F4F7F5] pb-32">
@@ -286,15 +288,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         )}
       </div>
 
-      {tab === 'basic' && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
-          <div className="max-w-md mx-auto">
-            <button onClick={handleSave} disabled={saving} className={"w-full py-4 rounded-2xl font-black text-lg text-white " + (saved ? 'bg-[#238C56]' : 'bg-[#1A6640]') + " disabled:opacity-50"}>
-              {saved ? '✓ 保存しました' : saving ? '保存中...' : '変更を保存する'}
-            </button>
-          </div>
-        </div>
-      )}
+      <SaveBtn tabName={tab} />
     </main>
   )
 }
