@@ -301,15 +301,19 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         )}
 
         {/* 保育士認証ボタン（未認証の場合） */}
-        {!staffAuthed && child.nursery_id && (
-          <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
-            <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 保育士の方へ</div>
-            <div className="text-sm text-[#7A8E80] mb-3">PINを入力すると緊急連絡先・持薬などの詳細情報を確認できます</div>
-            <button onClick={() => setShowPinModal(true)} className="w-full bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm">
-              🔐 保育士認証（PIN入力）
-            </button>
-          </div>
-        )}
+{!staffAuthed && child.nursery_id && (
+  <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
+    <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 保育士の方へ</div>
+    <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
+      緊急連絡先・持薬などの詳細情報を確認するには、保育士用NFCタグが必要です。
+    </div>
+    <div className="bg-[#E6F4EC] rounded-xl p-4 text-center border border-[#B8D9C8]">
+      <div className="text-2xl mb-2">🏷️</div>
+      <div className="font-bold text-[#1A6640] text-sm">保育士用NFCタグをスマホにかざしてください</div>
+      <div className="text-xs text-[#7A8E80] mt-1">かざすとPIN入力画面が開きます</div>
+    </div>
+  </div>
+)}
 
         {/* 緊急通知 */}
         <div className={`rounded-2xl p-5 border mb-4 ${notifyState === 'done' ? 'bg-[#E6F4EC] border-[#C2D4C6]' : 'bg-[#FCEAEA] border-[#E8AAAA]'}`}>

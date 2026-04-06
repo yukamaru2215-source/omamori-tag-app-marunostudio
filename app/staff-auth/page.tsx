@@ -18,6 +18,8 @@ function StaffAuthContent() {
   const [authed, setAuthed] = useState(false)
   const [shake, setShake] = useState(false)
   const [nurseryName, setNurseryName] = useState('')
+  const [locked, setLocked] = useState(false)
+  const [attempts, setAttempts] = useState(0)
 
   useEffect(() => {
     if (nurseryId) {
@@ -26,17 +28,35 @@ function StaffAuthContent() {
     }
   }, [nurseryId])
 
-  // 30分無操作で自動ログアウト
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      sessionStorage.removeItem('staff_token')
-      router.push('/')
-    }, 30 * 60 * 1000)
-    return () => clearTimeout(timer)
-  }, [router])
+  // auth_keyがない場合はアクセス拒否
+  if (!authKey) {
+    return (
+      <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
+        <div className="text-center max-w-sm">
+          <div className="text-5xl mb-4">🔒</div>
+          <div className="font-black text-xl text-[#0E1A12] mb-3">保育士用NFCタグが必要です</div>
+          <div className="text-sm text-[#7A8E80] leading-relaxed">
+            このページは保育士用NFCタグをかざすことでのみアクセスできます。
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  if (!nurseryId) {
+    return (
+      <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-4xl mb-4">❌</div>
+          <div className="font-black text-[#0E1A12] mb-2">無効なURLです</div>
+          <div className="text-sm text-[#7A8E80]">正しい保育士用NFCタグを使用してください</div>
+        </div>
+      </main>
+    )
+  }
 
   function handleDigit(d: string) {
-    if (pin.length >= 4) return
+    if (pin.length >= 4 || locked) return
     const next = pin + d
     setPin(next)
     setError('')
@@ -44,60 +64,53 @@ function StaffAuthContent() {
   }
 
   function handleDelete() {
+    if (locked) return
     setPin(p => p.slice(0, -1))
   }
 
   async function verify(pinValue: string) {
-    if (!nurseryId) { setError('無効なURLです'); return }
     setLoading(true)
 
-    let result
-    if (authKey) {
-      // NFCタグ経由（auth_key + PIN）
-      result = await supabase.rpc('verify_staff_auth', {
-        p_nursery_id: nurseryId,
-        p_auth_key: authKey,
-        p_pin: pinValue,
-      })
-    } else {
-      // 手入力経由（PIN のみ）
-      result = await supabase.rpc('verify_staff_pin_only', {
-        p_nursery_id: nurseryId,
-        p_pin: pinValue,
-      })
-    }
+    const { data, error: rpcError } = await supabase.rpc('verify_staff_auth_secure', {
+      p_nursery_id: nurseryId,
+      p_auth_key: authKey,
+      p_pin: pinValue,
+    })
 
     setLoading(false)
 
-    if (result.error || !result.data || result.data.length === 0) {
-      setError('PINが正しくありません')
+    if (rpcError) {
+      if (rpcError.message.includes('TOO_MANY_ATTEMPTS')) {
+        setLocked(true)
+        setError('試行回数が多すぎます。30分後に再試行してください。')
+        setPin('')
+        return
+      }
+      const newAttempts = attempts + 1
+      setAttempts(newAttempts)
+      setError(`PINが正しくありません（${newAttempts}/5回）`)
       setShake(true)
       setTimeout(() => { setShake(false); setPin('') }, 600)
       return
     }
 
-    // セッション保存（30分）
+    if (!data || data.length === 0) {
+      setError('認証に失敗しました')
+      setPin('')
+      return
+    }
+
+    // セッション保存
     sessionStorage.setItem('staff_token', JSON.stringify({
-      token: result.data[0].session_token,
-      expiresAt: result.data[0].expires_at,
+      token: data[0].session_token,
+      expiresAt: data[0].expires_at,
       nurseryId,
-      // 個別ページ用：このslugのみ有効
       lockedSlug: childSlug || null,
     }))
 
     setAuthed(true)
     setTimeout(() => router.push(redirect), 800)
   }
-
-  if (!nurseryId) return (
-    <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
-      <div className="text-center">
-        <div className="text-4xl mb-4">❌</div>
-        <div className="font-black text-[#0E1A12] mb-2">無効なURLです</div>
-        <div className="text-sm text-[#7A8E80]">正しい保育士用NFCタグを使用してください</div>
-      </div>
-    </main>
-  )
 
   if (authed) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
@@ -115,36 +128,44 @@ function StaffAuthContent() {
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">👩‍🏫</div>
           <div className="font-black text-2xl text-[#0E1A12] mb-1">保育士認証</div>
-          {nurseryName && <div className="text-sm text-[#1A6640] font-bold">{nurseryName}</div>}
-          <div className="text-sm text-[#7A8E80] mt-2">4桁のPINコードを入力してください</div>
+          {nurseryName && <div className="text-sm text-[#1A6640] font-bold bg-[#E6F4EC] px-4 py-1 rounded-full inline-block mt-1">{nurseryName}</div>}
+          <div className="text-sm text-[#7A8E80] mt-3">4桁のPINコードを入力してください</div>
         </div>
 
-        {/* PIN表示 */}
-        <div className={`flex justify-center gap-4 mb-6 ${shake ? 'animate-bounce' : ''}`}>
-          {[0,1,2,3].map(i => (
-            <div key={i} className={`w-5 h-5 rounded-full border-2 transition-all ${i < pin.length ? 'bg-[#1A6640] border-[#1A6640]' : 'bg-white border-[#E0EAE2]'}`} />
-          ))}
-        </div>
-
-        {error && (
-          <div className="bg-[#FCEAEA] text-[#B83030] text-sm font-bold text-center py-3 rounded-xl mb-4">
-            {error}
+        {locked ? (
+          <div className="bg-[#FCEAEA] border border-[#E8AAAA] rounded-2xl p-6 text-center">
+            <div className="text-3xl mb-3">🔒</div>
+            <div className="font-black text-[#B83030] mb-2">ロックされています</div>
+            <div className="text-sm text-[#B83030]">試行回数が5回を超えました。<br />30分後に再試行してください。</div>
           </div>
+        ) : (
+          <>
+            <div className={`flex justify-center gap-4 mb-6 ${shake ? 'animate-bounce' : ''}`}>
+              {[0,1,2,3].map(i => (
+                <div key={i} className={`w-5 h-5 rounded-full border-2 transition-all ${i < pin.length ? 'bg-[#1A6640] border-[#1A6640]' : 'bg-white border-[#E0EAE2]'}`} />
+              ))}
+            </div>
+
+            {error && (
+              <div className="bg-[#FCEAEA] text-[#B83030] text-sm font-bold text-center py-3 rounded-xl mb-4">
+                {error}
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto mb-6">
+              {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((d, i) => (
+                <button key={i}
+                  onClick={() => d === '⌫' ? handleDelete() : d !== '' ? handleDigit(String(d)) : null}
+                  disabled={loading}
+                  className={`h-16 rounded-2xl font-bold text-xl transition-all ${d === '' ? 'invisible' : 'bg-white border border-[#E0EAE2] text-[#0E1A12] shadow-sm active:bg-[#E6F4EC] active:scale-95'} disabled:opacity-50`}>
+                  {d}
+                </button>
+              ))}
+            </div>
+
+            {loading && <div className="text-center text-sm text-[#7A8E80] mb-4">認証中...</div>}
+          </>
         )}
-
-        {/* テンキー */}
-        <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto mb-6">
-          {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((d, i) => (
-            <button key={i}
-              onClick={() => d === '⌫' ? handleDelete() : d !== '' ? handleDigit(String(d)) : null}
-              disabled={loading}
-              className={`h-16 rounded-2xl font-bold text-xl transition-all ${d === '' ? 'invisible' : 'bg-white border border-[#E0EAE2] text-[#0E1A12] shadow-sm active:bg-[#E6F4EC] active:scale-95'} disabled:opacity-50`}>
-              {d}
-            </button>
-          ))}
-        </div>
-
-        {loading && <div className="text-center text-sm text-[#7A8E80]">認証中...</div>}
 
         <button onClick={() => router.back()} className="w-full text-center text-sm text-[#7A8E80] py-3">
           ← 戻る
