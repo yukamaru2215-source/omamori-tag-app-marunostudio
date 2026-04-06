@@ -43,19 +43,31 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   }, [slug])
 
   async function sendNotify() {
-    if (!child) return
-    setNotifyState('sending')
-    let lat = null, lng = null
-    try {
-      const pos = await new Promise<GeolocationPosition>((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 })
-      )
-      lat = pos.coords.latitude
-      lng = pos.coords.longitude
-    } catch {}
-    await supabase.from('notification_logs').insert({ child_id: child.id, lat, lng })
-    setNotifyState('done')
+  if (!child) return
+  setNotifyState('sending')
+  let lat = null, lng = null
+  try {
+    const pos = await new Promise<GeolocationPosition>((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 })
+    )
+    lat = pos.coords.latitude
+    lng = pos.coords.longitude
+  } catch {}
+
+  const res = await fetch('/api/send-emergency', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ childId: child.id, lat, lng }),
+  })
+
+  if (res.status === 429) {
+    alert('通知は1分に1回のみ送信できます')
+    setNotifyState('idle')
+    return
   }
+
+  setNotifyState('done')
+}
 
   if (loading) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
