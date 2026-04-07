@@ -22,25 +22,35 @@ export async function POST(req: NextRequest) {
   }
 
   // 子どもと保護者のメール取得
-  const { data: child } = await supabase
+  const { data: child, error: childError } = await supabase
     .from('children')
     .select('display_name, parent_id')
     .eq('id', childId)
     .single()
 
-  if (!child) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 })
+  if (childError || !child) {
+    console.error('child error:', childError)
+    return NextResponse.json({ error: 'NOT_FOUND', detail: childError?.message }, { status: 404 })
+  }
 
-  const { data: { user } } = await supabase.auth.admin.getUserById(child.parent_id)
-  const parentEmail = user?.email
+  if (!child.parent_id) {
+    return NextResponse.json({ error: 'NO_PARENT_ID' }, { status: 400 })
+  }
 
-  if (!parentEmail) return NextResponse.json({ error: 'NO_EMAIL' }, { status: 400 })
+  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(child.parent_id)
+  const parentEmail = userData?.user?.email
+
+  if (userError || !parentEmail) {
+    console.error('user error:', userError)
+    return NextResponse.json({ error: 'NO_EMAIL', detail: userError?.message }, { status: 400 })
+  }
 
   const locationText = lat && lng
     ? `<a href="https://www.google.com/maps?q=${lat},${lng}">📍 現在地を地図で見る</a>`
     : '📍 位置情報は取得できませんでした'
 
   // Resendでメール送信
-  await fetch('https://api.resend.com/emails', {
+  const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -65,8 +75,15 @@ export async function POST(req: NextRequest) {
     }),
   })
 
+  const resendData = await resendRes.json()
+
+  if (!resendRes.ok) {
+    console.error('resend error:', resendData)
+    return NextResponse.json({ error: 'MAIL_FAILED', detail: resendData }, { status: 500 })
+  }
+
   // ログ記録
   await supabase.from('notification_logs').insert({ child_id: childId, lat, lng })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, email: parentEmail })
 }
