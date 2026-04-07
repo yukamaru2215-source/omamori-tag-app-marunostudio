@@ -307,7 +307,12 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
     <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
       緊急連絡先・持薬などの詳細情報を確認するには、保育士用NFCタグが必要です。
     </div>
-    <div className="bg-[#E6F4EC] rounded-xl p-4 text-center border border-[#B8D9C8]">
+    <div className="bg-[#E6F4EC] rounded-xl p-4 text-center border border-[#B8D9C8]"
+      onClick={() => {
+        // 認証後に戻るURLを保存
+        sessionStorage.setItem('staff_redirect', `/kid/${slug}`)
+      }}
+    >
       <div className="text-2xl mb-2">🏷️</div>
       <div className="font-bold text-[#1A6640] text-sm">保育士用NFCタグをスマホにかざしてください</div>
       <div className="text-xs text-[#7A8E80] mt-1">かざすとPIN入力画面が開きます</div>

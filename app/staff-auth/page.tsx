@@ -101,16 +101,24 @@ function StaffAuthContent() {
     }
 
     // セッション保存
-    sessionStorage.setItem('staff_token', JSON.stringify({
-      token: data[0].session_token,
-      expiresAt: data[0].expires_at,
-      nurseryId,
-      lockedSlug: childSlug || null,
-    }))
+    // セッション保存
+sessionStorage.setItem('staff_token', JSON.stringify({
+  token: data[0].session_token,
+  expiresAt: data[0].expires_at,
+  nurseryId,
+  lockedSlug: childSlug || null,
+}))
 
-    setAuthed(true)
-    setTimeout(() => router.push(redirect), 800)
-  }
+setAuthed(true)
+
+// 保存されたリダイレクト先があればそこへ、なければデフォルト
+const savedRedirect = sessionStorage.getItem('staff_redirect')
+if (savedRedirect) {
+  sessionStorage.removeItem('staff_redirect')
+  setTimeout(() => router.push(savedRedirect), 800)
+} else {
+  setTimeout(() => router.push(redirect), 800)
+}
 
   if (authed) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
