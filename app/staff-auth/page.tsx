@@ -100,14 +100,12 @@ function StaffAuthContent() {
 
     setAuthed(true)
 
-    const savedRedirect = sessionStorage.getItem('staff_redirect')
-    if (savedRedirect) {
-      sessionStorage.removeItem('staff_redirect')
-      setTimeout(() => router.push(savedRedirect), 800)
-    } else {
-      setTimeout(() => router.push(redirect), 800)
-    }
-  }
+const savedRedirect = localStorage.getItem('last_kid_page')
+if (savedRedirect) {
+  setTimeout(() => router.push(savedRedirect), 800)
+} else {
+  setTimeout(() => router.push(redirect), 800)
+}
 
   if (authed) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">

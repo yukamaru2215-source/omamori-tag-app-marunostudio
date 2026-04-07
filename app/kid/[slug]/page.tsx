@@ -16,23 +16,23 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
 
   // ページ読み込み時に自動でリダイレクト先を保存＆認証チェック
   useEffect(() => {
-    // 認証後に戻るURLを自動保存
-    sessionStorage.setItem('staff_redirect', `/kid/${slug}`)
+  // localStorageに保存（タブをまたいでも共有される）
+  localStorage.setItem('last_kid_page', `/kid/${slug}`)
 
-    const raw = sessionStorage.getItem('staff_token')
-    if (raw) {
-      try {
-        const { expiresAt, lockedSlug } = JSON.parse(raw)
-        if (new Date(expiresAt) > new Date()) {
-          if (!lockedSlug || lockedSlug === slug) {
-            setStaffAuthed(true)
-          }
-        } else {
-          sessionStorage.removeItem('staff_token')
+  const raw = sessionStorage.getItem('staff_token')
+  if (raw) {
+    try {
+      const { expiresAt, lockedSlug } = JSON.parse(raw)
+      if (new Date(expiresAt) > new Date()) {
+        if (!lockedSlug || lockedSlug === slug) {
+          setStaffAuthed(true)
         }
-      } catch {}
-    }
-  }, [slug])
+      } else {
+        sessionStorage.removeItem('staff_token')
+      }
+    } catch {}
+  }
+}, [slug])
 
   // 30分無操作で自動ログアウト
   useEffect(() => {
