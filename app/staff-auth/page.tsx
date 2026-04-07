@@ -9,7 +9,7 @@ function StaffAuthContent() {
   const searchParams = useSearchParams()
   const nurseryId = searchParams.get('nursery')
   const authKey = searchParams.get('key')
-  const redirect = searchParams.get('redirect') || '/dashboard'
+  const redirect = searchParams.get('redirect') || '/'
   const childSlug = searchParams.get('slug')
 
   const [pin, setPin] = useState('')
@@ -100,19 +100,21 @@ function StaffAuthContent() {
 
     setAuthed(true)
 
-const savedRedirect = localStorage.getItem('last_kid_page')
-if (savedRedirect) {
-  setTimeout(() => router.push(savedRedirect), 800)
-} else {
-  setTimeout(() => router.push(redirect), 800)
-}
+    // localStorageから元のページに戻る
+    const savedRedirect = localStorage.getItem('last_kid_page')
+    if (savedRedirect) {
+      setTimeout(() => router.push(savedRedirect), 800)
+    } else {
+      setTimeout(() => router.push(redirect), 800)
+    }
+  }
 
   if (authed) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
       <div className="text-center">
         <div className="text-5xl mb-4">✅</div>
         <div className="font-black text-xl text-[#1A6640] mb-2">認証成功</div>
-        <div className="text-sm text-[#7A8E80]">移動します...</div>
+        <div className="text-sm text-[#7A8E80]">元のページに戻ります...</div>
       </div>
     </main>
   )
