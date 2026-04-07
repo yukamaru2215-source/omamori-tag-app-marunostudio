@@ -28,32 +28,25 @@ function StaffAuthContent() {
     }
   }, [nurseryId])
 
-  // auth_keyがない場合はアクセス拒否
-  if (!authKey) {
-    return (
-      <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
-        <div className="text-center max-w-sm">
-          <div className="text-5xl mb-4">🔒</div>
-          <div className="font-black text-xl text-[#0E1A12] mb-3">保育士用NFCタグが必要です</div>
-          <div className="text-sm text-[#7A8E80] leading-relaxed">
-            このページは保育士用NFCタグをかざすことでのみアクセスできます。
-          </div>
-        </div>
-      </main>
-    )
-  }
+  if (!authKey) return (
+    <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
+      <div className="text-center max-w-sm">
+        <div className="text-5xl mb-4">🔒</div>
+        <div className="font-black text-xl text-[#0E1A12] mb-3">保育士用NFCタグが必要です</div>
+        <div className="text-sm text-[#7A8E80] leading-relaxed">このページは保育士用NFCタグをかざすことでのみアクセスできます。</div>
+      </div>
+    </main>
+  )
 
-  if (!nurseryId) {
-    return (
-      <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="text-4xl mb-4">❌</div>
-          <div className="font-black text-[#0E1A12] mb-2">無効なURLです</div>
-          <div className="text-sm text-[#7A8E80]">正しい保育士用NFCタグを使用してください</div>
-        </div>
-      </main>
-    )
-  }
+  if (!nurseryId) return (
+    <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
+      <div className="text-center">
+        <div className="text-4xl mb-4">❌</div>
+        <div className="font-black text-[#0E1A12] mb-2">無効なURLです</div>
+        <div className="text-sm text-[#7A8E80]">正しい保育士用NFCタグを使用してください</div>
+      </div>
+    </main>
+  )
 
   function handleDigit(d: string) {
     if (pin.length >= 4 || locked) return
@@ -70,13 +63,11 @@ function StaffAuthContent() {
 
   async function verify(pinValue: string) {
     setLoading(true)
-
     const { data, error: rpcError } = await supabase.rpc('verify_staff_auth_secure', {
       p_nursery_id: nurseryId,
       p_auth_key: authKey,
       p_pin: pinValue,
     })
-
     setLoading(false)
 
     if (rpcError) {
@@ -100,25 +91,23 @@ function StaffAuthContent() {
       return
     }
 
-    // セッション保存
-    // セッション保存
-sessionStorage.setItem('staff_token', JSON.stringify({
-  token: data[0].session_token,
-  expiresAt: data[0].expires_at,
-  nurseryId,
-  lockedSlug: childSlug || null,
-}))
+    sessionStorage.setItem('staff_token', JSON.stringify({
+      token: data[0].session_token,
+      expiresAt: data[0].expires_at,
+      nurseryId,
+      lockedSlug: childSlug || null,
+    }))
 
-setAuthed(true)
+    setAuthed(true)
 
-// 保存されたリダイレクト先があればそこへ、なければデフォルト
-const savedRedirect = sessionStorage.getItem('staff_redirect')
-if (savedRedirect) {
-  sessionStorage.removeItem('staff_redirect')
-  setTimeout(() => router.push(savedRedirect), 800)
-} else {
-  setTimeout(() => router.push(redirect), 800)
-}
+    const savedRedirect = sessionStorage.getItem('staff_redirect')
+    if (savedRedirect) {
+      sessionStorage.removeItem('staff_redirect')
+      setTimeout(() => router.push(savedRedirect), 800)
+    } else {
+      setTimeout(() => router.push(redirect), 800)
+    }
+  }
 
   if (authed) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
