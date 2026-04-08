@@ -25,16 +25,16 @@ export default function Home() {
           </Link>
 
           <div className="bg-white rounded-2xl p-6 border border-[#E0EAE2] shadow-sm">
-            <div className="text-xs font-bold text-[#7A8E80] uppercase tracking-widest mb-3">
-              デモ：NFCタグ読み取り
-            </div>
-            <Link
-              href="/kid/demo"
-              className="block bg-[#E6F4EC] text-[#1A6640] text-center py-3 rounded-xl font-bold"
-            >
-              👧 園児の医療情報を見る
-            </Link>
-          </div>
+  <div className="text-xs font-bold text-[#7A8E80] uppercase tracking-widest mb-3">
+    デモ：NFCタグ読み取り
+  </div>
+  <Link
+    href="/kid/demo"
+    className="block bg-[#E6F4EC] text-[#1A6640] text-center py-3 rounded-xl font-bold"
+  >
+    👧 園児の医療情報を見る
+  </Link>
+</div>
         </div>
       </div>
     </main>
