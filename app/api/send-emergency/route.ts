@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: 'おまもりタグ <onboarding@resend.dev>',
+      from: 'おまもりタグ <noreply@marunostudio.com>',
       to: parentEmail,
       subject: `🚨 ${child.display_name}の緊急通知`,
       html: `
