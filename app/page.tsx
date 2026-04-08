@@ -9,7 +9,7 @@ export default function Home() {
         <div className="text-center mb-10">
           <div className="text-5xl mb-4">🏷️</div>
           <h1 className="text-3xl font-black text-[#1A6640] mb-2">
-            保育園NFCアプリ
+            おまもりタグアプリ
           </h1>
           <p className="text-sm text-[#7A8E80]">
             園児の医療情報をNFCタグで安全に管理
