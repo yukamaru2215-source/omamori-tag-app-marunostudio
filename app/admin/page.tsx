@@ -219,7 +219,7 @@ export default function AdminPage() {
             </div>
             <div>
               <label className="block text-xs font-black text-[#7A8E80] mb-1">園コード（保護者に伝える短いコード）</label>
-              <input value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none font-mono" placeholder="例：HIMAWARI" maxLength={20} autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} />
+              <input value={newCode} onChange={e => setNewCode(e.target.value)} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none font-mono" placeholder="例：HIMAWARI" maxLength={20} autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} style={{ textTransform: 'uppercase' }} />
               <div className="text-xs text-[#7A8E80] mt-1">英数字・大文字で保存されます</div>
             </div>
             <div>
@@ -255,7 +255,7 @@ export default function AdminPage() {
             <div className="px-5 py-4 border-b border-[#E0EAE2]">
               <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🔤 園コードを変更</div>
               <div className="flex gap-2">
-                <input value={codes[n.id] ?? ''} onChange={e => setCodes({ ...codes, [n.id]: e.target.value.toUpperCase() })} className="flex-1 border border-[#E0EAE2] rounded-xl px-4 py-2 text-sm outline-none font-mono" placeholder="新しい園コード" maxLength={20} autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} />
+                <input value={codes[n.id] ?? ''} onChange={e => setCodes({ ...codes, [n.id]: e.target.value })} className="flex-1 border border-[#E0EAE2] rounded-xl px-4 py-2 text-sm outline-none font-mono" placeholder="新しい園コード" maxLength={20} autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} style={{ textTransform: 'uppercase' }} />
                 <button onClick={() => handleUpdateCode(n.id)} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-xs">更新</button>
               </div>
             </div>
