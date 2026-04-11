@@ -172,10 +172,22 @@ export default function AdminPage() {
     return `${baseUrl}/staff-auth?nursery=${nursery.id}&key=${nursery.staff_auth_key}`
   }
 
+  function getStaffDashboardUrl(nursery: Nursery) {
+    return `${baseUrl}/staff-auth?nursery=${nursery.id}&key=${nursery.staff_auth_key}&redirect=/staff`
+  }
+
   function copyUrl(nursery: Nursery) {
     navigator.clipboard.writeText(getStaffUrl(nursery))
     setCopiedId(nursery.id)
     setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const [copiedDashId, setCopiedDashId] = useState<string | null>(null)
+
+  function copyDashUrl(nursery: Nursery) {
+    navigator.clipboard.writeText(getStaffDashboardUrl(nursery))
+    setCopiedDashId(nursery.id)
+    setTimeout(() => setCopiedDashId(null), 2000)
   }
 
   if (loading) return (
@@ -268,6 +280,18 @@ export default function AdminPage() {
                   <div className="text-xs text-[#7A8E80] mt-2">保育士用NFCタグに書き込むURL</div>
                 </div>
               )}
+            </div>
+
+            {/* スタッフダッシュボードURL */}
+            <div className="px-5 py-4 border-b border-[#E0EAE2]">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 スタッフ用ダッシュボードURL</div>
+              <div className="text-xs text-[#7A8E80] mb-2">認証後に保育士ダッシュボードへ直接移動するURL</div>
+              <div className="bg-[#F4F7F5] rounded-xl px-3 py-2 text-xs font-mono text-[#0E1A12] break-all mb-3 border border-[#E0EAE2]">
+                {getStaffDashboardUrl(n)}
+              </div>
+              <button onClick={() => copyDashUrl(n)} className="w-full bg-[#EBF0FA] text-[#1A50A0] py-2 rounded-xl font-bold text-xs">
+                {copiedDashId === n.id ? '✓ コピー済み' : '📋 スタッフURLをコピー'}
+              </button>
             </div>
 
             {/* PIN更新 */}
