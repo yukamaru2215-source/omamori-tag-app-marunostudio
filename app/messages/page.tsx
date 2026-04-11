@@ -267,58 +267,32 @@ export default function MessagesPage() {
 
                         {!d ? (
                           <div className="text-xs text-[#7A8E80] text-center py-2">読み込み中...</div>
+                        ) : unread.length === 0 ? (
+                          <div className="text-center text-xs text-[#1A6640] font-bold py-2">
+                            🎉 全員が開封済みです
+                          </div>
                         ) : (
                           <>
-                            {/* 開封済み */}
-                            {d.reads.length > 0 && (
-                              <div className="mb-3">
-                                <div className="text-xs font-black text-[#1A6640] mb-2">✅ 開封済み（{d.reads.length}人）</div>
-                                <div className="space-y-1">
-                                  {d.reads.map((r) => {
-                                    const rec = d.recipients.find((rec) => rec.parent_id === r.parent_id)
-                                    return (
-                                      <div key={r.parent_id} className="flex justify-between text-xs text-[#3A4A3E] bg-[#E6F4EC] rounded-lg px-3 py-1.5">
-                                        <span className="truncate font-bold">{rec?.label ?? '—'}</span>
-                                        <span className="text-[#7A8E80] ml-2 flex-shrink-0">
-                                          {new Date(r.read_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                      </div>
-                                    )
-                                  })}
-                                </div>
+                            {/* 未開封のみ表示 */}
+                            <div className="mb-4">
+                              <div className="text-xs font-black text-[#B83030] mb-2">📭 未開封（{unread.length}人）</div>
+                              <div className="space-y-1">
+                                {unread.map((r) => (
+                                  <div key={r.parent_id} className="text-xs font-bold text-[#3A4A3E] bg-[#FCEAEA] rounded-lg px-3 py-1.5 truncate">
+                                    {r.label}
+                                  </div>
+                                ))}
                               </div>
-                            )}
-
-                            {/* 未開封 */}
-                            {unread.length > 0 && (
-                              <div className="mb-4">
-                                <div className="text-xs font-black text-[#B83030] mb-2">📭 未開封（{unread.length}人）</div>
-                                <div className="space-y-1">
-                                  {unread.map((r) => (
-                                    <div key={r.parent_id} className="text-xs font-bold text-[#3A4A3E] bg-[#FCEAEA] rounded-lg px-3 py-1.5 truncate">
-                                      {r.label}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                            </div>
 
                             {/* リマインドボタン */}
-                            {unread.length > 0 && (
-                              <button
-                                onClick={() => handleReminder(msg.id)}
-                                disabled={remindingId === msg.id}
-                                className="w-full bg-[#EBF0FA] text-[#1A50A0] py-2.5 rounded-xl font-bold text-xs disabled:opacity-50"
-                              >
-                                {remindingId === msg.id ? '送信中...' : `🔔 未開封の${unread.length}人にリマインド送信`}
-                              </button>
-                            )}
-
-                            {unread.length === 0 && d.reads.length > 0 && (
-                              <div className="text-center text-xs text-[#1A6640] font-bold py-2">
-                                🎉 全員が開封済みです
-                              </div>
-                            )}
+                            <button
+                              onClick={() => handleReminder(msg.id)}
+                              disabled={remindingId === msg.id}
+                              className="w-full bg-[#EBF0FA] text-[#1A50A0] py-2.5 rounded-xl font-bold text-xs disabled:opacity-50"
+                            >
+                              {remindingId === msg.id ? '送信中...' : `🔔 未開封の${unread.length}人にリマインド送信`}
+                            </button>
                           </>
                         )}
                       </div>
