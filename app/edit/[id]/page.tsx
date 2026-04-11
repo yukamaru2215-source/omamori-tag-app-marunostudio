@@ -77,6 +77,13 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     setTimeout(() => setSavedTab(null), 2000)
   }
 
+  async function handleDelete() {
+    if (!confirm(`「${form.display_name}」の情報をすべて削除しますか？\nこの操作は取り消せません。`)) return
+    const { error } = await supabase.from('children').delete().eq('id', id)
+    if (error) { alert('削除に失敗しました'); return }
+    router.push('/dashboard')
+  }
+
   async function handleSaveGroups() {
     setSavingGroups(true)
     // 既存のグループ紐づけを全削除して再挿入
@@ -371,6 +378,18 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
       </div>
 
       {tab !== 'group' && <SaveBtn tabName={tab} />}
+
+      {/* 削除ボタン（basicタブのみ表示） */}
+      {tab === 'basic' && (
+        <div className="max-w-md mx-auto px-4 pb-8 mt-2">
+          <button
+            onClick={handleDelete}
+            className="w-full py-3 rounded-2xl font-bold text-sm text-[#B83030] bg-[#FCEAEA] border border-[#E8AAAA]"
+          >
+            🗑️ このお子様の情報を削除する
+          </button>
+        </div>
+      )}
     </main>
   )
 }
