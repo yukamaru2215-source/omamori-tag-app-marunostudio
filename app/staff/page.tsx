@@ -16,6 +16,35 @@ type ChildRow = {
   parentRead: boolean | null // null = メッセージなし, true = 既読, false = 未読
 }
 
+function ChildCard({ child }: { child: ChildRow }) {
+  return (
+    <div className="bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-[#E6F4EC] flex items-center justify-center text-xl flex-shrink-0">
+            {child.has_epipen ? '💉' : '👧'}
+          </div>
+          <div className="min-w-0">
+            <div className="font-black text-[#0E1A12] text-sm">
+              {child.display_name}
+              {child.full_name && (
+                <span className="font-normal text-[#7A8E80] text-xs ml-1">（{child.full_name}）</span>
+              )}
+            </div>
+            <div className="text-xs text-[#7A8E80]">{child.age}</div>
+          </div>
+        </div>
+        {child.parentRead === true && (
+          <span className="flex-shrink-0 text-xs font-bold bg-[#E6F4EC] text-[#1A6640] px-2 py-1 rounded-full">✅ 既読</span>
+        )}
+        {child.parentRead === false && (
+          <span className="flex-shrink-0 text-xs font-bold bg-[#FCEAEA] text-[#B83030] px-2 py-1 rounded-full">📭 未読</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function StaffPage() {
   const router = useRouter()
   const [nurseryId, setNurseryId] = useState<string | null>(null)
@@ -219,52 +248,52 @@ export default function StaffPage() {
 
         {/* ── 園児一覧 ── */}
         {tab === 'children' && (
-          <div className="space-y-2">
+          <div>
             {children.length === 0 ? (
               <div className="bg-white rounded-2xl p-8 border border-[#E0EAE2] text-center">
                 <div className="text-4xl mb-3">👶</div>
                 <div className="text-sm text-[#7A8E80]">この園に登録された園児はいません</div>
               </div>
             ) : (
-              children.map((child) => (
-                <div key={child.id} className="bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-[#E6F4EC] flex items-center justify-center text-xl flex-shrink-0">
-                        {child.has_epipen ? '💉' : '👧'}
+              <>
+                {/* グループごとにセクション表示 */}
+                {groups.map((group) => {
+                  const inGroup = children.filter((c) => c.groups.some((g) => g.id === group.id))
+                  if (inGroup.length === 0) return null
+                  return (
+                    <div key={group.id} className="mb-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-black text-[#1A6640] bg-[#E6F4EC] px-3 py-1 rounded-full">{group.name}</span>
+                        <span className="text-xs text-[#7A8E80]">{inGroup.length}人</span>
                       </div>
-                      <div className="min-w-0">
-                        <div className="font-black text-[#0E1A12] text-sm">
-                          {child.display_name}
-                          {child.full_name && (
-                            <span className="font-normal text-[#7A8E80] text-xs ml-1">（{child.full_name}）</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-[#7A8E80]">{child.age}</div>
+                      <div className="space-y-2">
+                        {inGroup.map((child) => (
+                          <ChildCard key={child.id} child={child} />
+                        ))}
                       </div>
                     </div>
+                  )
+                })}
 
-                    {/* 既読バッジ */}
-                    {child.parentRead === true && (
-                      <span className="flex-shrink-0 text-xs font-bold bg-[#E6F4EC] text-[#1A6640] px-2 py-1 rounded-full">✅ 既読</span>
-                    )}
-                    {child.parentRead === false && (
-                      <span className="flex-shrink-0 text-xs font-bold bg-[#FCEAEA] text-[#B83030] px-2 py-1 rounded-full">📭 未読</span>
-                    )}
-                  </div>
-
-                  {/* グループタグ */}
-                  {child.groups.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2 ml-13">
-                      {child.groups.map((g) => (
-                        <span key={g.id} className="text-xs bg-[#EBF0FA] text-[#1A50A0] px-2 py-0.5 rounded-full font-bold">
-                          {g.name}
-                        </span>
-                      ))}
+                {/* グループ未所属 */}
+                {(() => {
+                  const noGroup = children.filter((c) => c.groups.length === 0)
+                  if (noGroup.length === 0) return null
+                  return (
+                    <div className="mb-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-black text-[#7A8E80] bg-[#F4F7F5] px-3 py-1 rounded-full border border-[#E0EAE2]">グループ未所属</span>
+                        <span className="text-xs text-[#7A8E80]">{noGroup.length}人</span>
+                      </div>
+                      <div className="space-y-2">
+                        {noGroup.map((child) => (
+                          <ChildCard key={child.id} child={child} />
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))
+                  )
+                })()}
+              </>
             )}
           </div>
         )}
