@@ -12,6 +12,8 @@ type Nursery = {
   created_at: string
 }
 
+type Group = { id: string; name: string }
+
 export default function AdminPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -28,6 +30,11 @@ export default function AdminPage() {
   const [codes, setCodes] = useState<Record<string, string>>({})
   const [savedPin, setSavedPin] = useState<string | null>(null)
 
+  // グループ管理
+  const [groups, setGroups] = useState<Record<string, Group[]>>({})
+  const [newGroupNames, setNewGroupNames] = useState<Record<string, string>>({})
+  const [savingGroup, setSavingGroup] = useState<string | null>(null)
+
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
@@ -37,7 +44,7 @@ export default function AdminPage() {
       if (!session) { router.push('/login'); return }
       if (session.user.email !== adminEmail) { router.push('/'); return }
       setAuthorized(true)
-      await loadNurseries()
+      await Promise.all([loadNurseries(), loadAllGroups()])
       setLoading(false)
     }
     init()
@@ -51,17 +58,27 @@ export default function AdminPage() {
     setNurseries(data ?? [])
   }
 
+  async function loadAllGroups() {
+    const { data } = await supabase
+      .from('groups')
+      .select('id, name, nursery_id')
+      .order('name')
+    if (!data) return
+    const map: Record<string, Group[]> = {}
+    for (const g of data) {
+      if (!map[g.nursery_id]) map[g.nursery_id] = []
+      map[g.nursery_id].push({ id: g.id, name: g.name })
+    }
+    setGroups(map)
+  }
+
   async function handleAdd() {
     if (!newName || !newPin) return
     setAdding(true)
 
-    // UUIDはDBが自動生成
     const { data, error } = await supabase
       .from('nurseries')
-      .insert({
-        name: newName,
-        code: newCode.toUpperCase() || null,
-      })
+      .insert({ name: newName, code: newCode.toUpperCase() || null })
       .select()
       .single()
 
@@ -71,7 +88,6 @@ export default function AdminPage() {
       return
     }
 
-    // PINを設定
     const { error: pinError } = await supabase.rpc('set_staff_pin', {
       p_nursery_id: data.id,
       p_pin: newPin,
@@ -83,9 +99,7 @@ export default function AdminPage() {
       return
     }
 
-    setNewName('')
-    setNewPin('')
-    setNewCode('')
+    setNewName(''); setNewPin(''); setNewCode('')
     await loadNurseries()
     setAdding(false)
   }
@@ -121,6 +135,37 @@ export default function AdminPage() {
     if (error) { alert('このコードは既に使われています'); return }
     setCodes({ ...codes, [nurseryId]: '' })
     await loadNurseries()
+  }
+
+  async function handleAddGroup(nurseryId: string) {
+    const name = (newGroupNames[nurseryId] ?? '').trim()
+    if (!name) return
+    setSavingGroup(nurseryId)
+    const { data, error } = await supabase
+      .from('groups')
+      .insert({ nursery_id: nurseryId, name })
+      .select('id, name')
+      .single()
+    if (error || !data) {
+      alert(`グループ追加エラー: ${error?.message}`)
+    } else {
+      setGroups((prev) => ({
+        ...prev,
+        [nurseryId]: [...(prev[nurseryId] ?? []), data],
+      }))
+      setNewGroupNames((prev) => ({ ...prev, [nurseryId]: '' }))
+    }
+    setSavingGroup(null)
+  }
+
+  async function handleDeleteGroup(groupId: string, nurseryId: string) {
+    if (!confirm('このグループを削除しますか？子どもとのグループ紐づけも削除されます。')) return
+    const { error } = await supabase.from('groups').delete().eq('id', groupId)
+    if (error) { alert(`削除エラー: ${error.message}`); return }
+    setGroups((prev) => ({
+      ...prev,
+      [nurseryId]: (prev[nurseryId] ?? []).filter((g) => g.id !== groupId),
+    }))
   }
 
   function getStaffUrl(nursery: Nursery) {
@@ -232,6 +277,44 @@ export default function AdminPage() {
                 <input value={pins[n.id] ?? ''} onChange={e => setPins({ ...pins, [n.id]: e.target.value.slice(0, 4) })} className="flex-1 border border-[#E0EAE2] rounded-xl px-4 py-2 text-sm outline-none" placeholder="新しい4桁PIN" type="number" />
                 <button onClick={() => handleUpdatePin(n.id)} className="bg-[#EBF0FA] text-[#1A50A0] px-4 py-2 rounded-xl font-bold text-xs">
                   {savedPin === n.id ? '✓ 保存済み' : '更新'}
+                </button>
+              </div>
+            </div>
+
+            {/* グループ管理 */}
+            <div className="px-5 py-4 border-b border-[#E0EAE2]">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">👥 グループ管理</div>
+              <div className="space-y-2 mb-3">
+                {(groups[n.id] ?? []).length === 0 ? (
+                  <div className="text-xs text-[#7A8E80] bg-[#F4F7F5] rounded-xl px-3 py-2">グループはまだありません</div>
+                ) : (
+                  (groups[n.id] ?? []).map((g) => (
+                    <div key={g.id} className="flex items-center justify-between bg-[#F4F7F5] rounded-xl px-3 py-2">
+                      <span className="text-sm font-bold text-[#0E1A12]">{g.name}</span>
+                      <button
+                        onClick={() => handleDeleteGroup(g.id, n.id)}
+                        className="text-xs text-[#B83030] bg-[#FCEAEA] px-2 py-1 rounded-lg font-bold"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newGroupNames[n.id] ?? ''}
+                  onChange={(e) => setNewGroupNames((prev) => ({ ...prev, [n.id]: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddGroup(n.id) }}
+                  className="flex-1 border border-[#E0EAE2] rounded-xl px-4 py-2 text-sm outline-none"
+                  placeholder="例：ひまわり組"
+                />
+                <button
+                  onClick={() => handleAddGroup(n.id)}
+                  disabled={savingGroup === n.id || !(newGroupNames[n.id] ?? '').trim()}
+                  className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-xs disabled:opacity-50"
+                >
+                  {savingGroup === n.id ? '...' : '追加'}
                 </button>
               </div>
             </div>

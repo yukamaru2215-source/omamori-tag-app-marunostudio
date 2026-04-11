@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
+type Group = { id: string; name: string }
+
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -15,6 +17,10 @@ export default function RegisterPage() {
   const [displayName, setDisplayName] = useState('')
   const [age, setAge] = useState('')
   const [agreed, setAgreed] = useState(false)
+
+  // グループ
+  const [groups, setGroups] = useState<Group[]>([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
 
   async function checkNurseryCode() {
     if (!nurseryCode) return
@@ -27,11 +33,27 @@ export default function RegisterPage() {
       setNurseryError('園コードが見つかりません')
       setNurseryName('')
       setNurseryId('')
+      setGroups([])
+      setSelectedGroupIds([])
     } else {
       setNurseryError('')
       setNurseryName(data.name)
       setNurseryId(data.id)
+      // 該当園のグループを読み込む
+      const { data: groupData } = await supabase
+        .from('groups')
+        .select('id, name')
+        .eq('nursery_id', data.id)
+        .order('name')
+      setGroups(groupData ?? [])
+      setSelectedGroupIds([])
     }
+  }
+
+  function toggleGroup(id: string) {
+    setSelectedGroupIds((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    )
   }
 
   async function handleSubmit() {
@@ -39,15 +61,33 @@ export default function RegisterPage() {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/login'); return }
-    const { error } = await supabase.from('children').insert({
-      display_name: displayName,
-      age: age,
-      parent_id: session.user.id,
-      nursery_id: nurseryId || null,
-      has_epipen: false,
-    })
-    if (!error) router.push('/dashboard')
-    else { alert('エラーが発生しました'); setLoading(false) }
+
+    const { data: child, error } = await supabase
+      .from('children')
+      .insert({
+        display_name: displayName,
+        age: age,
+        parent_id: session.user.id,
+        nursery_id: nurseryId || null,
+        has_epipen: false,
+      })
+      .select('id')
+      .single()
+
+    if (error || !child) {
+      alert('エラーが発生しました')
+      setLoading(false)
+      return
+    }
+
+    // グループ登録
+    if (selectedGroupIds.length > 0) {
+      await supabase.from('child_groups').insert(
+        selectedGroupIds.map((groupId) => ({ child_id: child.id, group_id: groupId }))
+      )
+    }
+
+    router.push('/dashboard')
   }
 
   return (
@@ -95,6 +135,34 @@ export default function RegisterPage() {
             </div>
           )}
         </div>
+
+        {/* グループ選択（園が確認された場合のみ表示） */}
+        {nurseryName && (
+          <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
+            <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">👥 グループ（任意）</div>
+            {groups.length === 0 ? (
+              <div className="text-sm text-[#7A8E80]">この園にはグループが設定されていません</div>
+            ) : (
+              <>
+                <div className="text-sm text-[#7A8E80] mb-3">所属するグループを選択してください（複数可）</div>
+                <div className="space-y-2">
+                  {groups.map((g) => (
+                    <label key={g.id} className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-[#F4F7F5]">
+                      <div
+                        className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${selectedGroupIds.includes(g.id) ? 'bg-[#1A6640] border-[#1A6640]' : 'bg-white border-[#E0EAE2]'}`}
+                        onClick={() => toggleGroup(g.id)}
+                      >
+                        {selectedGroupIds.includes(g.id) && <span className="text-white text-xs font-black">✓</span>}
+                      </div>
+                      <span className="text-sm font-bold text-[#0E1A12]">{g.name}</span>
+                      <input type="checkbox" className="sr-only" checked={selectedGroupIds.includes(g.id)} onChange={() => toggleGroup(g.id)} />
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* 規約同意 */}
         <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">

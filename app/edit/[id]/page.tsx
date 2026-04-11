@@ -5,21 +5,29 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Allergy, Condition, Medication, EmergencyContact, Doctor } from '@/lib/types'
 
+type Group = { id: string; name: string }
+
 export default function EditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [savedTab, setSavedTab] = useState<string | null>(null)
-  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor'>('basic')
+  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor' | 'group'>('basic')
   const [form, setForm] = useState({
     display_name: '', full_name: '', kana: '', age: '',
     blood_type: '不明', has_epipen: false, epipen_location: '',
   })
+  const [nurseryId, setNurseryId] = useState<string | null>(null)
   const [allergies, setAllergies] = useState<Allergy[]>([])
   const [conditions, setConditions] = useState<Condition[]>([])
   const [medications, setMedications] = useState<Medication[]>([])
   const [contacts, setContacts] = useState<EmergencyContact[]>([])
   const [doctors, setDoctors] = useState<Doctor[]>([])
+
+  // グループ
+  const [allGroups, setAllGroups] = useState<Group[]>([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+  const [savingGroups, setSavingGroups] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -41,11 +49,23 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         has_epipen: data.has_epipen ?? false,
         epipen_location: data.epipen_location ?? '',
       })
+      setNurseryId(data.nursery_id ?? null)
       setAllergies(data.allergies ?? [])
       setConditions(data.conditions ?? [])
       setMedications(data.medications ?? [])
       setContacts(data.emergency_contacts ?? [])
       setDoctors(data.doctors ?? [])
+
+      // グループ情報を読み込む
+      if (data.nursery_id) {
+        const [{ data: groupData }, { data: childGroupData }] = await Promise.all([
+          supabase.from('groups').select('id, name').eq('nursery_id', data.nursery_id).order('name'),
+          supabase.from('child_groups').select('group_id').eq('child_id', id),
+        ])
+        setAllGroups(groupData ?? [])
+        setSelectedGroupIds((childGroupData ?? []).map((cg) => cg.group_id))
+      }
+
       setLoading(false)
     }
     load()
@@ -55,6 +75,26 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     await supabase.from('children').update(form).eq('id', id)
     setSavedTab(tabName)
     setTimeout(() => setSavedTab(null), 2000)
+  }
+
+  async function handleSaveGroups() {
+    setSavingGroups(true)
+    // 既存のグループ紐づけを全削除して再挿入
+    await supabase.from('child_groups').delete().eq('child_id', id)
+    if (selectedGroupIds.length > 0) {
+      await supabase.from('child_groups').insert(
+        selectedGroupIds.map((groupId) => ({ child_id: id, group_id: groupId }))
+      )
+    }
+    setSavingGroups(false)
+    setSavedTab('group')
+    setTimeout(() => setSavedTab(null), 2000)
+  }
+
+  function toggleGroup(groupId: string) {
+    setSelectedGroupIds((prev) =>
+      prev.includes(groupId) ? prev.filter((g) => g !== groupId) : [...prev, groupId]
+    )
   }
 
   async function addAllergy() {
@@ -135,6 +175,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     { id: 'medication', label: '持薬' },
     { id: 'contact', label: '連絡先' },
     { id: 'doctor', label: '医師' },
+    ...(nurseryId ? [{ id: 'group', label: 'グループ' }] : []),
   ] as const
 
   const SaveBtn = ({ tabName }: { tabName: string }) => (
@@ -157,7 +198,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
         <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
           {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} className={"flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold " + (tab === t.id ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]')}>
+            <button key={t.id} onClick={() => setTab(t.id as typeof tab)} className={"flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold " + (tab === t.id ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]')}>
               {t.label}
             </button>
           ))}
@@ -286,9 +327,50 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             <button onClick={addDoctor} className="w-full py-3 border-2 border-dashed border-[#C2D4C6] rounded-2xl text-sm text-[#7A8E80] font-bold">＋ かかりつけ医を追加</button>
           </div>
         )}
+
+        {/* グループタブ */}
+        {tab === 'group' && (
+          <div>
+            <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">👥 所属グループ</div>
+              {allGroups.length === 0 ? (
+                <div className="text-sm text-[#7A8E80]">この園にはグループが設定されていません</div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-sm text-[#7A8E80] mb-3">所属するグループを選択してください（複数可）</div>
+                  {allGroups.map((g) => (
+                    <label key={g.id} className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-[#F4F7F5]">
+                      <div
+                        className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${selectedGroupIds.includes(g.id) ? 'bg-[#1A6640] border-[#1A6640]' : 'bg-white border-[#E0EAE2]'}`}
+                        onClick={() => toggleGroup(g.id)}
+                      >
+                        {selectedGroupIds.includes(g.id) && <span className="text-white text-xs font-black">✓</span>}
+                      </div>
+                      <span className="text-sm font-bold text-[#0E1A12]">{g.name}</span>
+                      <input type="checkbox" className="sr-only" checked={selectedGroupIds.includes(g.id)} onChange={() => toggleGroup(g.id)} />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* グループ保存ボタン */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
+              <div className="max-w-md mx-auto">
+                <button
+                  onClick={handleSaveGroups}
+                  disabled={savingGroups}
+                  className={'w-full py-4 rounded-2xl font-black text-lg text-white ' + (savedTab === 'group' ? 'bg-[#238C56]' : 'bg-[#1A6640]') + ' disabled:opacity-50'}
+                >
+                  {savingGroups ? '保存中...' : savedTab === 'group' ? '✓ 保存しました' : 'グループを保存する'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <SaveBtn tabName={tab} />
+      {tab !== 'group' && <SaveBtn tabName={tab} />}
     </main>
   )
 }

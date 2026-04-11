@@ -69,3 +69,36 @@ export type ChildFull = Child & {
   emergency_contacts: EmergencyContact[]
   doctors: Doctor[]
 }
+
+export type Group = {
+  id: string
+  nursery_id: string
+  name: string
+  created_at: string
+}
+
+export type Message = {
+  id: string
+  nursery_id: string
+  title: string
+  body: string
+  send_to: 'all' | 'groups'
+  group_ids: string[]
+  recipient_count: number
+  sent_at: string
+  created_at: string
+}
+
+export type MessageRecipient = {
+  id: string
+  message_id: string
+  parent_id: string
+  email: string
+}
+
+export type MessageRead = {
+  id: string
+  message_id: string
+  parent_id: string
+  read_at: string
+}
