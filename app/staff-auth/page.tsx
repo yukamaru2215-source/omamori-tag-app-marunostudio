@@ -100,12 +100,15 @@ function StaffAuthContent() {
 
     setAuthed(true)
 
-    // localStorageから元のページに戻る
+    // redirect パラメータが明示指定されている場合はそちらを優先
+    // 指定なし（デフォルト '/'）の場合は最後に見ていた子どものページへ
     const savedRedirect = localStorage.getItem('last_kid_page')
-    if (savedRedirect) {
+    if (redirect !== '/') {
+      setTimeout(() => router.push(redirect), 800)
+    } else if (savedRedirect) {
       setTimeout(() => router.push(savedRedirect), 800)
     } else {
-      setTimeout(() => router.push(redirect), 800)
+      setTimeout(() => router.push('/'), 800)
     }
   }
 
