@@ -18,7 +18,7 @@ type Message = {
 }
 
 type ReadEntry = { parent_id: string; read_at: string }
-type RecipientEntry = { parent_id: string; email: string }
+type RecipientEntry = { parent_id: string; email: string; label: string }
 
 export default function MessagesPage() {
   const router = useRouter()
@@ -87,7 +87,28 @@ export default function MessagesPage() {
       supabase.from('message_reads').select('parent_id, read_at').eq('message_id', messageId),
       supabase.from('message_recipients').select('parent_id, email').eq('message_id', messageId),
     ])
-    setDetails((prev) => ({ ...prev, [messageId]: { reads: reads ?? [], recipients: recipients ?? [] } }))
+
+    // 保護者IDから「一番年上の子」の名前を取得
+    const parentIds = (recipients ?? []).map((r) => r.parent_id)
+    const { data: childrenData } = parentIds.length > 0
+      ? await supabase.from('children').select('parent_id, display_name, age').in('parent_id', parentIds)
+      : { data: [] }
+
+    // 各保護者の一番年上の子の名前を決定
+    const parentLabelMap: Record<string, string> = {}
+    for (const parentId of parentIds) {
+      const kids = (childrenData ?? []).filter((c) => c.parent_id === parentId)
+      if (kids.length === 0) continue
+      const oldest = kids.sort((a, b) => (parseInt(b.age) || 0) - (parseInt(a.age) || 0))[0]
+      parentLabelMap[parentId] = oldest.display_name
+    }
+
+    const recipientsWithLabel = (recipients ?? []).map((r) => ({
+      ...r,
+      label: parentLabelMap[r.parent_id] ?? r.email,
+    }))
+
+    setDetails((prev) => ({ ...prev, [messageId]: { reads: reads ?? [], recipients: recipientsWithLabel } }))
   }
 
   async function handleExpand(id: string) {
@@ -257,7 +278,7 @@ export default function MessagesPage() {
                                     const rec = d.recipients.find((rec) => rec.parent_id === r.parent_id)
                                     return (
                                       <div key={r.parent_id} className="flex justify-between text-xs text-[#3A4A3E] bg-[#E6F4EC] rounded-lg px-3 py-1.5">
-                                        <span className="truncate">{rec?.email ?? '—'}</span>
+                                        <span className="truncate font-bold">{rec?.label ?? '—'}</span>
                                         <span className="text-[#7A8E80] ml-2 flex-shrink-0">
                                           {new Date(r.read_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </span>
@@ -274,8 +295,8 @@ export default function MessagesPage() {
                                 <div className="text-xs font-black text-[#B83030] mb-2">📭 未開封（{unread.length}人）</div>
                                 <div className="space-y-1">
                                   {unread.map((r) => (
-                                    <div key={r.parent_id} className="text-xs text-[#3A4A3E] bg-[#FCEAEA] rounded-lg px-3 py-1.5 truncate">
-                                      {r.email}
+                                    <div key={r.parent_id} className="text-xs font-bold text-[#3A4A3E] bg-[#FCEAEA] rounded-lg px-3 py-1.5 truncate">
+                                      {r.label}
                                     </div>
                                   ))}
                                 </div>
