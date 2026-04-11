@@ -177,12 +177,12 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
   const TABS = [
     { id: 'basic', label: '基本' },
+    ...(nurseryId ? [{ id: 'group', label: 'グループ' }] : []),
     { id: 'allergy', label: 'アレルギー' },
     { id: 'condition', label: '持病' },
     { id: 'medication', label: '持薬' },
     { id: 'contact', label: '連絡先' },
     { id: 'doctor', label: '医師' },
-    ...(nurseryId ? [{ id: 'group', label: 'グループ' }] : []),
   ] as const
 
   const SaveBtn = ({ tabName }: { tabName: string }) => (
