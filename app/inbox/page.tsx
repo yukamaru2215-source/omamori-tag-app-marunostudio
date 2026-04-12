@@ -57,7 +57,7 @@ export default function InboxPage() {
       const items: InboxMessage[] = recipients
         .filter((r) => r.messages)
         .map((r) => {
-          const msg = r.messages as {
+          const msg = r.messages as unknown as {
             id: string
             title: string
             body: string
