@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState('')
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
   const isAdmin = userEmail === adminEmail
@@ -32,6 +33,23 @@ export default function DashboardPage() {
         .select('*')
         .eq('parent_id', session.user.id)
       setChildren(data ?? [])
+
+      // 未読お知らせ数
+      const { data: recipients } = await supabase
+        .from('message_recipients')
+        .select('message_id')
+        .eq('parent_id', session.user.id)
+      const messageIds = (recipients ?? []).map((r) => r.message_id)
+      if (messageIds.length > 0) {
+        const { data: reads } = await supabase
+          .from('message_reads')
+          .select('message_id')
+          .eq('parent_id', session.user.id)
+          .in('message_id', messageIds)
+        const readSet = new Set((reads ?? []).map((r) => r.message_id))
+        setUnreadCount(messageIds.filter((id) => !readSet.has(id)).length)
+      }
+
       setLoading(false)
     }
     load()
@@ -103,8 +121,23 @@ export default function DashboardPage() {
           ))
         )}
 
-        <Link href="/register" className="block w-full bg-[#1A6640] text-white text-center py-4 rounded-2xl font-bold text-lg shadow-lg mt-2">
+        <Link href="/register" className="block w-full bg-[#1A6640] text-white text-center py-4 rounded-2xl font-bold text-lg shadow-lg mt-2 mb-3">
           ＋ お子様を登録する
+        </Link>
+
+        <Link href="/inbox" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📬</span>
+            <span className="font-bold text-sm text-[#0E1A12]">お知らせ一覧</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <span className="bg-[#1A6640] text-white text-xs font-black px-2 py-0.5 rounded-full">
+                {unreadCount}件未読
+              </span>
+            )}
+            <span className="text-[#7A8E80] text-sm">›</span>
+          </div>
         </Link>
       </div>
     </main>
