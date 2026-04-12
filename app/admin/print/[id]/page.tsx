@@ -43,7 +43,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
         <button onClick={() => window.print()} className="bg-[#1A6640] text-white px-5 py-2 rounded-xl text-sm font-bold shadow">🖨️ 印刷 / PDF保存</button>
       </div>
 
-      <main className="print-root max-w-[620px] mx-auto px-7 py-6 bg-white font-sans">
+      <main className="print-root max-w-[960px] mx-auto px-10 py-6 bg-white font-sans">
 
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-[#1A6640]">
