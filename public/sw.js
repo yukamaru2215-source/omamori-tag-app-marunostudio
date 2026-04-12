@@ -65,13 +65,12 @@ self.addEventListener('push', (event) => {
     requireInteraction: false,
   }
 
-  event.waitUntil(
-    self.registration.showNotification(data.title, options).then(() => {
-      if ('setAppBadge' in self.navigator) {
-        self.navigator.setAppBadge()
-      }
-    })
-  )
+  const showPromise = self.registration.showNotification(data.title, options)
+  const badgePromise = (self.navigator?.setAppBadge)
+    ? self.navigator.setAppBadge().catch(() => {})
+    : Promise.resolve()
+
+  event.waitUntil(Promise.all([showPromise, badgePromise]))
 })
 
 // 通知タップ時：アプリを開く

@@ -4,6 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
+function updateBadge(count: number) {
+  if (!('setAppBadge' in navigator)) return
+  try {
+    if (count > 0) {
+      navigator.setAppBadge(count)
+    } else {
+      navigator.clearAppBadge()
+    }
+  } catch { /* 非対応ブラウザは無視 */ }
+}
+
 type InboxMessage = {
   messageId: string
   title: string
@@ -76,11 +87,7 @@ export default function InboxPage() {
       setMessages(items)
       setLoading(false)
 
-      // 未読がなければバッジをクリア
-      const unread = items.filter((m) => !m.isRead).length
-      if ('setAppBadge' in navigator) {
-        unread > 0 ? navigator.setAppBadge(unread) : navigator.clearAppBadge()
-      }
+      updateBadge(items.filter((m) => !m.isRead).length)
     }
     load()
   }, [router])
@@ -98,10 +105,7 @@ export default function InboxPage() {
       )
       setMessages((prev) => {
         const updated = prev.map((m) => m.messageId === msg.messageId ? { ...m, isRead: true } : m)
-        const unread = updated.filter((m) => !m.isRead).length
-        if ('setAppBadge' in navigator) {
-          unread > 0 ? navigator.setAppBadge(unread) : navigator.clearAppBadge()
-        }
+        updateBadge(updated.filter((m) => !m.isRead).length)
         return updated
       })
     }

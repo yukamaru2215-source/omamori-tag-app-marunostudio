@@ -7,6 +7,17 @@ import { supabase } from '@/lib/supabase'
 import { Child } from '@/lib/types'
 import PushManager from '@/app/push-manager'
 
+function updateBadge(count: number) {
+  if (!('setAppBadge' in navigator)) return
+  try {
+    if (count > 0) {
+      navigator.setAppBadge(count)
+    } else {
+      navigator.clearAppBadge()
+    }
+  } catch { /* 非対応ブラウザは無視 */ }
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [children, setChildren] = useState<Child[]>([])
@@ -50,9 +61,7 @@ export default function DashboardPage() {
         const count = messageIds.filter((id) => !readSet.has(id)).length
         setUnreadCount(count)
         // アプリアイコンのバッジを更新
-        if ('setAppBadge' in navigator) {
-          count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge()
-        }
+        updateBadge(count)
       }
 
       setLoading(false)
