@@ -102,30 +102,6 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
           </div>
         </div>
 
-        {/* NFCタグの説明 */}
-        <div className="mb-5 bg-[#1A6640] rounded-xl p-4 text-white">
-          <div className="flex items-start gap-3">
-            <div className="text-2xl flex-shrink-0">🏷️</div>
-            <div>
-              <div className="font-black text-sm mb-1">NFCタグ（おまもりタグ）とは？</div>
-              <div className="text-xs leading-relaxed opacity-90">
-                お子様のランドセルや持ち物に貼る小さなタグです。スマートフォンをかざすだけで、
-                <span className="font-bold">アレルギー・持病・緊急連絡先</span>などの医療情報にすぐアクセスできます。
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="bg-white/15 rounded-lg px-3 py-2">
-                  <div className="font-bold text-xs mb-0.5">🚑 緊急時に役立つ</div>
-                  <div className="text-xs opacity-90">病院や救急の現場でタグをかざせば、必要な情報をすぐに確認できます</div>
-                </div>
-                <div className="bg-white/15 rounded-lg px-3 py-2">
-                  <div className="font-bold text-xs mb-0.5">🔒 大切な情報は保護</div>
-                  <div className="text-xs opacity-90">詳細な医療情報は保育士・医療従事者のみ閲覧可能。誰でも見えるわけではありません</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* 登録手順 */}
         <div className="mb-5">
           <div className="flex items-center gap-2 mb-3">
@@ -194,6 +170,30 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
 
           <div className="ml-7 bg-[#E6F4EC] rounded-xl px-3 py-2 text-xs text-[#4A6E55]">
             ホーム画面に追加すると、連絡が届いたときに<span className="font-bold">プッシュ通知</span>でお知らせします。
+          </div>
+        </div>
+
+        {/* NFCタグの説明 */}
+        <div className="mb-5 bg-[#1A6640] rounded-xl p-4 text-white">
+          <div className="flex items-start gap-3">
+            <div className="text-2xl flex-shrink-0">🏷️</div>
+            <div>
+              <div className="font-black text-sm mb-1">NFCタグ（おまもりタグ）とは？</div>
+              <div className="text-xs leading-relaxed opacity-90 mb-2">
+                お子様のランドセルや持ち物につける小さなタグです。スマートフォンをかざすだけで、
+                <span className="font-bold">アレルギー・持病・緊急連絡先</span>などの医療情報にすぐアクセスできます。
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-white/15 rounded-lg px-3 py-2">
+                  <div className="font-bold text-xs mb-0.5">🚑 緊急時に役立つ</div>
+                  <div className="text-xs opacity-90">もしものときにタグをかざせば、必要な情報をすぐに確認できます</div>
+                </div>
+                <div className="bg-white/15 rounded-lg px-3 py-2">
+                  <div className="font-bold text-xs mb-0.5">🔒 大切な情報は保護</div>
+                  <div className="text-xs opacity-90">詳細な医療情報は保育士のみ閲覧可能。誰でも見えるわけではありません</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
