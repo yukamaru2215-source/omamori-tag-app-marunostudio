@@ -343,6 +343,18 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* 保護者向けPDF */}
+            <div className="px-5 py-4 border-b border-[#E0EAE2]">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🖨️ 保護者向け案内</div>
+              <div className="text-xs text-[#7A8E80] mb-3">QRコード・園コード・登録方法をまとめた印刷用シート</div>
+              <button
+                onClick={() => window.open(`/admin/print/${n.id}`, '_blank')}
+                className="w-full bg-[#F4F7F5] text-[#1A6640] py-2 rounded-xl font-bold text-xs border border-[#B2D8C0]"
+              >
+                📄 印刷用シートを開く
+              </button>
+            </div>
+
             {/* キー再発行 */}
             <div className="px-5 py-4">
               <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">⚠️ NFCキー再発行（紛失時）</div>
