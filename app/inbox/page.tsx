@@ -36,7 +36,6 @@ export default function InboxPage() {
         .from('message_recipients')
         .select('message_id, messages(id, title, body, sent_at, nursery_id, nurseries(name))')
         .eq('parent_id', parentId)
-        .order('created_at', { ascending: false })
 
       if (!recipients || recipients.length === 0) {
         setLoading(false)
