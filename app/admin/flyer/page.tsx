@@ -6,7 +6,7 @@ const ORDER_FORM_URL = 'https://forms.gle/WC5m49J9ZpXoCBNT6'
 
 export default function FlyerPage() {
   const router = useRouter()
-  const formUrl = ORDER_FORM_URL || '#'
+  const formUrl: string = ORDER_FORM_URL || '#'
   const qrUrl = ORDER_FORM_URL
     ? `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=4&data=${encodeURIComponent(ORDER_FORM_URL)}`
     : null
