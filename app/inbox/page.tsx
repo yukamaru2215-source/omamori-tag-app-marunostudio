@@ -75,6 +75,12 @@ export default function InboxPage() {
 
       setMessages(items)
       setLoading(false)
+
+      // 未読がなければバッジをクリア
+      const unread = items.filter((m) => !m.isRead).length
+      if ('setAppBadge' in navigator) {
+        unread > 0 ? navigator.setAppBadge(unread) : navigator.clearAppBadge()
+      }
     }
     load()
   }, [router])
@@ -90,9 +96,14 @@ export default function InboxPage() {
         { message_id: msg.messageId, parent_id: session.user.id },
         { ignoreDuplicates: true }
       )
-      setMessages((prev) =>
-        prev.map((m) => m.messageId === msg.messageId ? { ...m, isRead: true } : m)
-      )
+      setMessages((prev) => {
+        const updated = prev.map((m) => m.messageId === msg.messageId ? { ...m, isRead: true } : m)
+        const unread = updated.filter((m) => !m.isRead).length
+        if ('setAppBadge' in navigator) {
+          unread > 0 ? navigator.setAppBadge(unread) : navigator.clearAppBadge()
+        }
+        return updated
+      })
     }
   }
 

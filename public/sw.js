@@ -66,7 +66,11 @@ self.addEventListener('push', (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title, options).then(() => {
+      if ('setAppBadge' in self.navigator) {
+        self.navigator.setAppBadge()
+      }
+    })
   )
 })
 

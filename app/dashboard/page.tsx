@@ -47,7 +47,12 @@ export default function DashboardPage() {
           .eq('parent_id', session.user.id)
           .in('message_id', messageIds)
         const readSet = new Set((reads ?? []).map((r) => r.message_id))
-        setUnreadCount(messageIds.filter((id) => !readSet.has(id)).length)
+        const count = messageIds.filter((id) => !readSet.has(id)).length
+        setUnreadCount(count)
+        // アプリアイコンのバッジを更新
+        if ('setAppBadge' in navigator) {
+          count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge()
+        }
       }
 
       setLoading(false)
