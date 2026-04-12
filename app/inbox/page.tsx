@@ -84,7 +84,7 @@ export default function InboxPage() {
           }
         })
 
-      setMessages(items)
+      setMessages(items.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()))
       setLoading(false)
 
       updateBadge(items.filter((m) => !m.isRead).length)
