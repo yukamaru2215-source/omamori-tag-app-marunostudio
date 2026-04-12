@@ -347,6 +347,18 @@ export default function StaffPage() {
           </div>
         )}
       </div>
+
+      {/* フッター */}
+      <div className="max-w-md mx-auto px-4 pb-8 pt-4 border-t border-[#E0EAE2] mt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-[#7A8E80]">月額利用料 <span className="font-bold text-[#0E1A12]">¥1,000</span>（税込）</div>
+            <div className="text-xs text-[#7A8E80] mt-0.5">提供：marunostudio</div>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/marunostudio-logo.jpg" alt="marunostudio" className="h-8 object-contain opacity-80" />
+        </div>
+      </div>
     </main>
   )
 }
