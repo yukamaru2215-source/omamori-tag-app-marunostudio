@@ -206,7 +206,10 @@ export default function AdminPage() {
             <div className="text-xs text-[#7A8E80]">管理者画面</div>
             <div className="font-black text-xl text-[#0E1A12]">園の管理</div>
           </div>
-          <button onClick={() => router.push('/dashboard')} className="text-sm text-[#7A8E80] border border-[#E0EAE2] px-3 py-2 rounded-xl bg-white">← 戻る</button>
+          <div className="flex gap-2">
+            <button onClick={() => window.open('/admin/flyer', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">🏷️ 販売チラシ</button>
+            <button onClick={() => router.push('/dashboard')} className="text-sm text-[#7A8E80] border border-[#E0EAE2] px-3 py-2 rounded-xl bg-white">← 戻る</button>
+          </div>
         </div>
 
         {/* 新規追加 */}
