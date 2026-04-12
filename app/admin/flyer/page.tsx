@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 
-const ORDER_FORM_URL = '' // ← GoogleフォームのURLをここに入れる
+const ORDER_FORM_URL = 'https://forms.gle/WC5m49J9ZpXoCBNT6'
 
 export default function FlyerPage() {
   const router = useRouter()
