@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Child } from '@/lib/types'
+import PushManager from '@/app/push-manager'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [children, setChildren] = useState<Child[]>([])
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
+  const [userId, setUserId] = useState('')
 
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
   const isAdmin = userEmail === adminEmail
@@ -24,6 +26,7 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
       setUserEmail(session.user.email ?? '')
+      setUserId(session.user.id)
       const { data } = await supabase
         .from('children')
         .select('*')
@@ -63,6 +66,8 @@ export default function DashboardPage() {
             ⚙️ 管理者画面
           </Link>
         )}
+
+        {userId && <PushManager parentId={userId} />}
 
         <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">
           登録済みのお子様

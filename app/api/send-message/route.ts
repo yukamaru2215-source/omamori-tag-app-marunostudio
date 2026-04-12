@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import webpush from 'web-push'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+webpush.setVapidDetails(
+  'mailto:noreply@marunostudio.com',
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+)
 
 export async function POST(request: NextRequest) {
   try {
@@ -121,6 +128,33 @@ export async function POST(request: NextRequest) {
         if (!error) sentCount++
       })
     )
+
+    // プッシュ通知送信（購読済みの保護者のみ）
+    const { data: pushSubs } = await supabaseAdmin
+      .from('push_subscriptions')
+      .select('endpoint, p256dh, auth')
+      .in('parent_id', parentIds)
+
+    if (pushSubs && pushSubs.length > 0) {
+      const pushPayload = JSON.stringify({
+        title: `【${nursery.name}】${title}`,
+        body: body.length > 80 ? body.slice(0, 80) + '…' : body,
+        url: '/dashboard',
+        tag: `message-${message.id}`,
+      })
+
+      await Promise.allSettled(
+        pushSubs.map((sub) =>
+          webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            pushPayload
+          ).catch(() => {
+            // 無効な購読は削除
+            supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
+          })
+        )
+      )
+    }
 
     return NextResponse.json({ success: true, sentCount, messageId: message.id })
   } catch (err) {
