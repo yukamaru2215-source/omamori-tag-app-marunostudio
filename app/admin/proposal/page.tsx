@@ -12,7 +12,7 @@ export default function ProposalPage() {
           .no-print { display: none !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           @page { margin: 10mm; size: A4 portrait; }
-          .print-root { zoom: 0.76; }
+          .print-root { zoom: 0.72; }
         }
       `}</style>
 
@@ -21,7 +21,7 @@ export default function ProposalPage() {
         <button onClick={() => window.print()} className="bg-[#1A6640] text-white px-5 py-2 rounded-xl text-sm font-bold shadow">🖨️ 印刷 / PDF保存</button>
       </div>
 
-      <main className="print-root max-w-[900px] mx-auto px-10 py-6 bg-white font-sans">
+      <main className="print-root max-w-[900px] mx-auto px-10 py-4 bg-white font-sans">
 
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-[#1A6640]">
