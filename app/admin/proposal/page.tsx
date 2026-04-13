@@ -232,6 +232,9 @@ export default function ProposalPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/marunostudio-logo.jpg" alt="marunostudio" className="h-8 object-contain opacity-80" />
         </div>
+        <div className="mt-2 text-[10px] text-gray-300 leading-relaxed">
+          ※本サービスはサブの「おまもり」としての活用を前提としています。緊急時は自己判断せず、必ず医療機関・救急の指示に従ってください。登録情報（古い情報・誤った情報を含む）の管理は保護者の責任となります。ネットワーク障害等により緊急時に閲覧できない場合があります。
+        </div>
 
       </main>
     </>
