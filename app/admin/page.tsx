@@ -9,6 +9,7 @@ type Nursery = {
   name: string
   code: string | null
   staff_auth_key: string
+  phone: string | null
   created_at: string
 }
 
@@ -28,7 +29,9 @@ export default function AdminPage() {
   const [showQR, setShowQR] = useState<string | null>(null)
   const [pins, setPins] = useState<Record<string, string>>({})
   const [codes, setCodes] = useState<Record<string, string>>({})
+  const [phones, setPhones] = useState<Record<string, string>>({})
   const [savedPin, setSavedPin] = useState<string | null>(null)
+  const [savedPhone, setSavedPhone] = useState<string | null>(null)
 
   // グループ管理
   const [groups, setGroups] = useState<Record<string, Group[]>>({})
@@ -123,6 +126,17 @@ export default function AdminPage() {
     setPins({ ...pins, [nurseryId]: '' })
     setSavedPin(nurseryId)
     setTimeout(() => setSavedPin(null), 2000)
+  }
+
+  async function handleUpdatePhone(nurseryId: string) {
+    const phone = phones[nurseryId]
+    if (!phone) return
+    const { error } = await supabase.from('nurseries').update({ phone }).eq('id', nurseryId)
+    if (error) { alert(`エラー: ${error.message}`); return }
+    setPhones({ ...phones, [nurseryId]: '' })
+    setSavedPhone(nurseryId)
+    setTimeout(() => setSavedPhone(null), 2000)
+    await loadNurseries()
   }
 
   async function handleUpdateCode(nurseryId: string) {
@@ -254,6 +268,20 @@ export default function AdminPage() {
               ) : (
                 <div className="text-xs text-[#B83030] mt-1">園コード未設定</div>
               )}
+            </div>
+
+            {/* 電話番号 */}
+            <div className="px-5 py-4 border-b border-[#E0EAE2]">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">📞 園の電話番号</div>
+              {n.phone && (
+                <div className="text-sm font-bold text-[#0E1A12] mb-2">{n.phone}</div>
+              )}
+              <div className="flex gap-2">
+                <input value={phones[n.id] ?? ''} onChange={e => setPhones({ ...phones, [n.id]: e.target.value })} className="flex-1 border border-[#E0EAE2] rounded-xl px-4 py-2 text-sm outline-none" placeholder="例：03-1234-5678" type="tel" />
+                <button onClick={() => handleUpdatePhone(n.id)} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-xs">
+                  {savedPhone === n.id ? '✓ 保存済み' : '更新'}
+                </button>
+              </div>
             </div>
 
             {/* 園コード更新 */}

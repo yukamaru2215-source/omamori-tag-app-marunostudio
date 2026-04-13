@@ -10,6 +10,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   const { slug } = use(params)
   const router = useRouter()
   const [child, setChild] = useState<ChildFull | null>(null)
+  const [nurseryPhone, setNurseryPhone] = useState<{ name: string; phone: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
   const [staffAuthed, setStaffAuthed] = useState(false)
@@ -61,7 +62,17 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         .select('*, allergies(*), conditions(*), medications(*), emergency_contacts(*), doctors(*)')
         .eq('slug', slug)
         .single()
-      if (!error && data) setChild(data)
+      if (!error && data) {
+        setChild(data)
+        if (data.nursery_id) {
+          const { data: nursery } = await supabase
+            .from('nurseries')
+            .select('name, phone')
+            .eq('id', data.nursery_id)
+            .single()
+          if (nursery?.phone) setNurseryPhone({ name: nursery.name, phone: nursery.phone })
+        }
+      }
       setLoading(false)
     }
     fetchChild()
@@ -237,6 +248,23 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {nurseryPhone && (
+              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+                <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
+                  <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">🏫 在籍保育園</span>
+                </div>
+                <div className="p-4 flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <div className="font-bold text-[#0E1A12]">{nurseryPhone.name}</div>
+                    <div className="text-xs text-[#7A8E80] mt-0.5">園の連絡先</div>
+                  </div>
+                  <a href={`tel:${nurseryPhone.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
+                    📞 {nurseryPhone.phone}
+                  </a>
+                </div>
               </div>
             )}
 
