@@ -12,7 +12,7 @@ export default function ProposalPage() {
           .no-print { display: none !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           @page { margin: 10mm; size: A4 portrait; }
-          .print-root { zoom: 0.72; }
+          .print-root { zoom: 0.68; }
         }
       `}</style>
 
