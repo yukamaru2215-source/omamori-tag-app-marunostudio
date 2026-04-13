@@ -79,6 +79,13 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     setTimeout(() => setSavedTab(null), 2000)
   }
 
+  async function handleUnlinkNursery() {
+    if (!confirm('保育園との紐づけを解除しますか？\n解除後も情報はそのまま使い続けられます。')) return
+    await supabase.from('child_groups').delete().eq('child_id', id)
+    await supabase.from('children').update({ nursery_id: null }).eq('id', id)
+    setNurseryId(null)
+  }
+
   async function handleDelete() {
     if (!confirm(`「${form.display_name}」の情報をすべて削除しますか？\nこの操作は取り消せません。`)) return
     const { error } = await supabase.from('children').delete().eq('id', id)
@@ -389,9 +396,17 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
       {tab !== 'group' && <SaveBtn tabName={tab} />}
 
-      {/* 削除ボタン（basicタブのみ表示） */}
+      {/* 削除・解除ボタン（basicタブのみ表示） */}
       {tab === 'basic' && (
-        <div className="max-w-md mx-auto px-4 pb-8 mt-2">
+        <div className="max-w-md mx-auto px-4 pb-8 mt-2 space-y-2">
+          {nurseryId && (
+            <button
+              onClick={handleUnlinkNursery}
+              className="w-full py-3 rounded-2xl font-bold text-sm text-[#926010] bg-[#FDF5E4] border border-[#E8C880]"
+            >
+              🏫 保育園との紐づけを解除する（卒園時など）
+            </button>
+          )}
           <button
             onClick={handleDelete}
             className="w-full py-3 rounded-2xl font-bold text-sm text-[#B83030] bg-[#FCEAEA] border border-[#E8AAAA]"
