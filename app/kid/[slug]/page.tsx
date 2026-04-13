@@ -280,10 +280,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">🏫 在籍保育園</span>
             </div>
             <div className="p-4 flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <div className="font-bold text-[#0E1A12]">{nurseryPhone.name}</div>
-                <div className="text-xs text-[#7A8E80] mt-0.5">園の連絡先</div>
-              </div>
+              <div className="text-xs text-[#7A8E80]">在籍している保育園の連絡先です</div>
               <a href={`tel:${nurseryPhone.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
                 📞 {nurseryPhone.phone}
               </a>
