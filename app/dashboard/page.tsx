@@ -145,6 +145,14 @@ export default function DashboardPage() {
           ＋ お子様を登録する
         </Link>
 
+        <Link href="/faq" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">❓</span>
+            <span className="font-bold text-sm text-[#0E1A12]">よくある質問・使い方</span>
+          </div>
+          <span className="text-[#7A8E80] text-sm">›</span>
+        </Link>
+
         <Link href="/inbox" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="text-lg">📬</span>

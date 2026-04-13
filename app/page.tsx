@@ -23,8 +23,12 @@ export default function Home() {
           >
             👨‍👩‍👧 保護者ログイン
           </Link>
-
-          
+          <Link
+            href="/faq"
+            className="text-center py-3 rounded-2xl font-bold text-sm text-[#1A6640] border border-[#B8D9C8] bg-white"
+          >
+            ❓ よくある質問・使い方
+          </Link>
         </div>
       </div>
     </main>
