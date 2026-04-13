@@ -101,6 +101,12 @@ export default function DashboardPage() {
 
         {userId && <PushManager parentId={userId} />}
 
+        <div className="bg-[#E6F4EC] rounded-xl px-4 py-3 border border-[#B8D9C8] mb-4 text-xs text-[#1A6640] leading-relaxed">
+          <p className="font-bold mb-1">🏷️ おまもりタグについて</p>
+          <p>このアプリはあくまでサブの「おまもり」として活用するものです。緊急時は必ず119番・かかりつけ医へご連絡ください。</p>
+          <p className="mt-1 text-[#5A6E62]">登録情報（古い情報・誤った情報を含む）の管理・更新は保護者の責任となります。ネットワーク障害等で緊急時に閲覧できない場合があることもご了承ください。</p>
+        </div>
+
         <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">
           登録済みのお子様
         </div>

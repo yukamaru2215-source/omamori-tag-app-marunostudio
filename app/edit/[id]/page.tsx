@@ -212,7 +212,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         </div>
 
         <div className="bg-[#FDF5E4] rounded-xl px-4 py-3 border border-[#E8C880] mb-4 text-xs text-[#926010] leading-relaxed">
-          <span className="font-bold">⚠️ ご確認ください：</span>登録情報の最新性はお客様（保護者）が管理・更新するものとします。古い情報によるトラブルについて運営者は責任を負いません。また、ネットワーク障害等により緊急時に閲覧できない場合があることをご了承ください。
+          <span className="font-bold">⚠️ ご確認ください：</span>登録情報（古い情報・誤った情報を含む）の最新性・正確性はお客様（保護者）が管理・更新するものとします。これらによるトラブルについて運営者は一切の責任を負いません。また、ネットワーク障害等により緊急時に閲覧できない場合があることをご了承ください。
         </div>
 
         {tab === 'basic' && (
