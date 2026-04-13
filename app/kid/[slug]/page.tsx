@@ -194,6 +194,16 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         {/* 保育士認証済みの詳細情報 */}
         {staffAuthed && (
           <>
+            {child.birthdate && (
+              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+                <div className="px-4 py-3 bg-[#F4F7F5] border-b border-[#E0EAE2]">
+                  <span className="text-xs font-black text-[#5A6E62] uppercase tracking-widest">🎂 生年月日</span>
+                </div>
+                <div className="p-4 font-bold text-[#0E1A12]">
+                  {new Date(child.birthdate).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+            )}
             {child.medications && child.medications.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
                 <div className="px-4 py-3 bg-[#FDF5E4] border-b border-[#E8C880]">

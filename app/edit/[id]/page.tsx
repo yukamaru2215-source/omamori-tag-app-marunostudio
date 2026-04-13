@@ -15,6 +15,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor' | 'group'>('basic')
   const [form, setForm] = useState({
     display_name: '', full_name: '', kana: '', age: '',
+    birthdate: '',
     blood_type: '不明', has_epipen: false, epipen_location: '',
   })
   const [nurseryId, setNurseryId] = useState<string | null>(null)
@@ -45,6 +46,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         full_name: data.full_name ?? '',
         kana: data.kana ?? '',
         age: data.age ?? '',
+        birthdate: data.birthdate ?? '',
         blood_type: data.blood_type ?? '不明',
         has_epipen: data.has_epipen ?? false,
         epipen_location: data.epipen_location ?? '',
@@ -228,6 +230,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             <div>
               <label className="block text-xs font-black text-[#7A8E80] mb-1">よみがな</label>
               <input value={form.kana} onChange={e => setForm({ ...form, kana: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">生年月日 <span className="font-normal text-[#B0C0B8]">（保育士のみ閲覧）</span></label>
+              <input value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" type="date" />
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
