@@ -203,12 +203,16 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
           <div className="font-black text-xl text-[#0E1A12]">情報を編集</div>
         </div>
 
-        <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+        <div className="flex gap-1 mb-3 overflow-x-auto pb-1">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id as typeof tab)} className={"flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold " + (tab === t.id ? 'bg-[#1A6640] text-white' : 'bg-white text-[#7A8E80] border border-[#E0EAE2]')}>
               {t.label}
             </button>
           ))}
+        </div>
+
+        <div className="bg-[#FDF5E4] rounded-xl px-4 py-3 border border-[#E8C880] mb-4 text-xs text-[#926010] leading-relaxed">
+          <span className="font-bold">⚠️ ご確認ください：</span>登録情報の最新性はお客様（保護者）が管理・更新するものとします。古い情報によるトラブルについて運営者は責任を負いません。また、ネットワーク障害等により緊急時に閲覧できない場合があることをご了承ください。
         </div>
 
         {tab === 'basic' && (

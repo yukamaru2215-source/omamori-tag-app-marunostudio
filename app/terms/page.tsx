@@ -36,6 +36,24 @@ export default function TermsPage() {
           <div>
             <h2 className="font-black text-[#0E1A12] mb-2">第4条（免責事項）</h2>
             <p>本サービスは医療行為を代替するものではありません。緊急時は必ず専門の医療機関にご連絡ください。</p>
+            <div className="mt-3 space-y-3">
+              <div className="bg-[#F4F7F5] rounded-xl p-3 border border-[#E0EAE2]">
+                <p className="font-bold text-[#0E1A12] text-xs mb-1">● 3Dプリント製品について</p>
+                <p>製品には3Dプリンター造形特有の積層痕が生じる場合があります。また、高温環境下（車内等）での変形リスクがあります。ご購入の際にこれらの特性に同意いただいたものとみなします。</p>
+              </div>
+              <div className="bg-[#F4F7F5] rounded-xl p-3 border border-[#E0EAE2]">
+                <p className="font-bold text-[#0E1A12] text-xs mb-1">● NFC通信について</p>
+                <p>NFCタグの物理的な寿命・経年劣化、スマートフォンのケースによる電波干渉、金属面への設置など通信環境に依存する読み取り不可については、保証の対象外とします。</p>
+              </div>
+              <div className="bg-[#F4F7F5] rounded-xl p-3 border border-[#E0EAE2]">
+                <p className="font-bold text-[#0E1A12] text-xs mb-1">● 緊急時の表示について</p>
+                <p>本アプリは緊急時の情報提供を補助するものです。ネットワーク障害・サーバーダウン等により一時的に閲覧できない場合があることをあらかじめご承諾のうえご利用ください。</p>
+              </div>
+              <div className="bg-[#F4F7F5] rounded-xl p-3 border border-[#E0EAE2]">
+                <p className="font-bold text-[#0E1A12] text-xs mb-1">● 登録情報の最新性について</p>
+                <p>お守りタグに紐づく情報の最新性は、ご登録者（保護者）が自ら管理・更新するものとします。古い情報や未更新の情報によって生じたトラブルについて、運営者は一切の責任を負いません。</p>
+              </div>
+            </div>
           </div>
 
           <div>
