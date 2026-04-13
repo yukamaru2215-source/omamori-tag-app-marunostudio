@@ -251,23 +251,6 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               </div>
             )}
 
-            {nurseryPhone && (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
-                <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
-                  <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">🏫 在籍保育園</span>
-                </div>
-                <div className="p-4 flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <div className="font-bold text-[#0E1A12]">{nurseryPhone.name}</div>
-                    <div className="text-xs text-[#7A8E80] mt-0.5">園の連絡先</div>
-                  </div>
-                  <a href={`tel:${nurseryPhone.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
-                    📞 {nurseryPhone.phone}
-                  </a>
-                </div>
-              </div>
-            )}
-
             {child.doctors && child.doctors.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
                 <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
@@ -288,6 +271,24 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               </div>
             )}
           </>
+        )}
+
+        {/* 保育園の連絡先（全員に表示） */}
+        {nurseryPhone && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+            <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
+              <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">🏫 在籍保育園</span>
+            </div>
+            <div className="p-4 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <div className="font-bold text-[#0E1A12]">{nurseryPhone.name}</div>
+                <div className="text-xs text-[#7A8E80] mt-0.5">園の連絡先</div>
+              </div>
+              <a href={`tel:${nurseryPhone.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
+                📞 {nurseryPhone.phone}
+              </a>
+            </div>
+          </div>
         )}
 
         {/* 保育士認証ボタン（未認証の場合） */}
