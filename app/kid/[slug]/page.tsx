@@ -296,7 +296,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
 
         <div className="bg-[#F4F7F5] rounded-xl p-3 border border-[#E0EAE2] mb-4 text-xs text-[#7A8E80] leading-relaxed space-y-1">
           <p className="font-bold text-[#5A6E62]">ご利用にあたって</p>
-          <p>・本アプリはサブの「おまもり」として活用するものです。緊急時は必ず119番・かかりつけ医へご連絡ください。</p>
+          <p>・本アプリはサブの「おまもり」として活用するものです。緊急時は自己判断せず、必ず医療機関・救急の指示に従ってください。</p>
           <p>・登録情報（古い情報・誤った情報を含む）の管理は保護者の責任です。内容の正確性は保証されません。</p>
           <p>・ネットワーク障害等により閲覧できない場合があります。NFC読み取りはケース干渉・金属面等により失敗する場合があります。</p>
           <p className="pt-1"><Link href="/terms" className="underline text-[#1A6640]">免責事項の詳細（利用規約）→</Link></p>
