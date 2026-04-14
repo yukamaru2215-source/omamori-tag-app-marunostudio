@@ -15,6 +15,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
   const [staffAuthed, setStaffAuthed] = useState(false)
   const [isLost, setIsLost] = useState(false)
+  const [notifyMessage, setNotifyMessage] = useState('')
 
   // ページ読み込み時に自動でリダイレクト先を保存＆認証チェック
   useEffect(() => {
@@ -103,7 +104,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
     const res = await fetch('/api/send-emergency', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ childId: child.id, lat, lng }),
+      body: JSON.stringify({ childId: child.id, lat, lng, message: notifyMessage.trim() || null }),
     })
     if (res.status === 429) {
       alert('通知は1分に1回のみ送信できます')
@@ -151,8 +152,16 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               <div className="text-sm text-[#7A8E80] mt-1">まもなく連絡が来ます</div>
             </div>
           ) : notifyState === 'confirm' ? (
-            <div className="text-center">
-              <div className="text-sm font-bold text-[#926010] mb-4">保護者に「タグが発見された」と通知しますか？</div>
+            <div>
+              <div className="text-sm font-bold text-[#926010] mb-3 text-center">保護者に「タグが発見された」と通知しますか？</div>
+              <textarea
+                value={notifyMessage}
+                onChange={e => setNotifyMessage(e.target.value.slice(0, 100))}
+                placeholder="状況を一言添えられます（任意・100文字まで）&#10;例：駅の改札前で拾いました"
+                className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none resize-none mb-3 bg-white"
+                rows={3}
+              />
+              <div className="text-right text-xs text-[#B0C0B8] mb-3">{notifyMessage.length}/100</div>
               <div className="flex gap-3">
                 <button onClick={sendNotify} className="flex-1 bg-[#1A6640] text-white py-3 rounded-xl font-bold">送信する</button>
                 <button onClick={() => setNotifyState('idle')} className="flex-1 bg-white text-[#7A8E80] py-3 rounded-xl font-bold border border-[#E0EAE2]">キャンセル</button>
@@ -366,8 +375,16 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
               <div className="text-sm text-[#7A8E80] mt-1">まもなく連絡が来ます</div>
             </div>
           ) : notifyState === 'confirm' ? (
-            <div className="text-center">
-              <div className="text-sm font-bold text-[#B83030] mb-4">本当に緊急通知を送りますか？</div>
+            <div>
+              <div className="text-sm font-bold text-[#B83030] mb-3 text-center">本当に緊急通知を送りますか？</div>
+              <textarea
+                value={notifyMessage}
+                onChange={e => setNotifyMessage(e.target.value.slice(0, 100))}
+                placeholder="状況を一言添えられます（任意・100文字まで）&#10;例：公園で倒れているのを発見しました"
+                className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none resize-none mb-3 bg-white"
+                rows={3}
+              />
+              <div className="text-right text-xs text-[#B0C0B8] mb-3">{notifyMessage.length}/100</div>
               <div className="flex gap-3">
                 <button onClick={sendNotify} className="flex-1 bg-[#B83030] text-white py-3 rounded-xl font-bold">送信する</button>
                 <button onClick={() => setNotifyState('idle')} className="flex-1 bg-white text-[#7A8E80] py-3 rounded-xl font-bold border border-[#E0EAE2]">キャンセル</button>

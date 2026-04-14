@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: NextRequest) {
-  const { childId, lat, lng } = await req.json()
+  const { childId, lat, lng, message } = await req.json()
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,6 +49,16 @@ export async function POST(req: NextRequest) {
     ? `<a href="https://www.google.com/maps?q=${lat},${lng}">📍 現在地を地図で見る</a>`
     : '📍 位置情報は取得できませんでした'
 
+  const safeMessage = typeof message === 'string'
+    ? message.slice(0, 100).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    : null
+  const messageBlock = safeMessage
+    ? `<div style="background: #fff8e6; border-left: 4px solid #e8a800; padding: 12px 16px; border-radius: 6px; margin: 12px 0;">
+        <p style="margin: 0; font-size: 13px; color: #555; font-weight: bold;">発見者からのメッセージ</p>
+        <p style="margin: 6px 0 0; font-size: 15px; color: #333;">${safeMessage}</p>
+       </div>`
+    : ''
+
   // Resendでメール送信
   const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -67,6 +77,7 @@ export async function POST(req: NextRequest) {
           </div>
           <div style="background: #f9f9f9; padding: 20px; border-radius: 0 0 12px 12px;">
             <p><strong>${child.display_name}</strong> のおまもりタグがスキャンされ、緊急通知が送信されました。</p>
+            ${messageBlock}
             <p>${locationText}</p>
             <p style="color: #888; font-size: 12px;">送信時刻: ${new Date().toLocaleString('ja-JP')}</p>
           </div>
