@@ -14,6 +14,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   const [loading, setLoading] = useState(true)
   const [notifyState, setNotifyState] = useState<'idle' | 'confirm' | 'sending' | 'done'>('idle')
   const [staffAuthed, setStaffAuthed] = useState(false)
+  const [isLost, setIsLost] = useState(false)
 
   // ページ読み込み時に自動でリダイレクト先を保存＆認証チェック
   useEffect(() => {
@@ -35,11 +36,20 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   }
 }, [slug])
 
-  // 30分無操作で自動ログアウト
+  // 30分無操作で自動ログアウト（操作があるたびにexpiresAtも延長）
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
     const reset = () => {
       clearTimeout(timer)
+      // アクティビティを検出するたびにセッション有効期限を延長
+      try {
+        const raw = sessionStorage.getItem('staff_token')
+        if (raw) {
+          const token = JSON.parse(raw)
+          token.expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+          sessionStorage.setItem('staff_token', JSON.stringify(token))
+        }
+      } catch {}
       timer = setTimeout(() => {
         sessionStorage.removeItem('staff_token')
         setStaffAuthed(false)
@@ -63,6 +73,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         .eq('slug', slug)
         .single()
       if (!error && data) {
+        setIsLost(data.is_lost ?? false)
         setChild(data)
         if (data.nursery_id) {
           const { data: nursery } = await supabase
@@ -116,6 +127,49 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   if (!child) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
       <div className="text-[#7A8E80]">情報が見つかりません</div>
+    </main>
+  )
+
+  // 紛失モード：情報は非表示、発見者向けUI を表示
+  if (isLost) return (
+    <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-6">
+      <div className="max-w-sm w-full">
+        <div className="bg-white rounded-2xl p-6 border border-[#E0EAE2] shadow-sm text-center mb-4">
+          <div className="text-5xl mb-4">🔒</div>
+          <div className="font-black text-xl text-[#0E1A12] mb-2">このタグは現在無効化されています</div>
+          <div className="text-sm text-[#7A8E80] leading-relaxed">
+            タグの持ち主によってアクセスが一時的に制限されています。
+          </div>
+        </div>
+
+        {/* 発見者向けフロー */}
+        <div className={`rounded-2xl p-5 border mb-4 ${notifyState === 'done' ? 'bg-[#E6F4EC] border-[#C2D4C6]' : 'bg-[#FDF5E4] border-[#E8C880]'}`}>
+          {notifyState === 'done' ? (
+            <div className="text-center">
+              <div className="text-4xl mb-2">✅</div>
+              <div className="font-black text-[#1A6640]">保護者へ通知しました</div>
+              <div className="text-sm text-[#7A8E80] mt-1">まもなく連絡が来ます</div>
+            </div>
+          ) : notifyState === 'confirm' ? (
+            <div className="text-center">
+              <div className="text-sm font-bold text-[#926010] mb-4">保護者に「タグが発見された」と通知しますか？</div>
+              <div className="flex gap-3">
+                <button onClick={sendNotify} className="flex-1 bg-[#1A6640] text-white py-3 rounded-xl font-bold">送信する</button>
+                <button onClick={() => setNotifyState('idle')} className="flex-1 bg-white text-[#7A8E80] py-3 rounded-xl font-bold border border-[#E0EAE2]">キャンセル</button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="text-sm font-bold text-[#926010] mb-1">このタグを発見しましたか？</div>
+              <div className="text-xs text-[#7A8E80] mb-3">ボタンを押すと持ち主へ通知が届きます</div>
+              <button onClick={() => setNotifyState('confirm')} disabled={notifyState === 'sending'} className="w-full bg-[#1A6640] text-white py-4 rounded-xl font-black text-base">
+                📍 発見を保護者に知らせる
+              </button>
+              <div className="text-xs text-[#7A8E80] mt-2">個人情報は表示されません</div>
+            </div>
+          )}
+        </div>
+      </div>
     </main>
   )
 

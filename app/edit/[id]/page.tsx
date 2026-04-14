@@ -17,6 +17,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     display_name: '', full_name: '', kana: '', age: '',
     birthdate: '',
     blood_type: '不明', has_epipen: false, epipen_location: '',
+    is_lost: false,
   })
   const [nurseryId, setNurseryId] = useState<string | null>(null)
   const [allergies, setAllergies] = useState<Allergy[]>([])
@@ -50,6 +51,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         blood_type: data.blood_type ?? '不明',
         has_epipen: data.has_epipen ?? false,
         epipen_location: data.epipen_location ?? '',
+        is_lost: data.is_lost ?? false,
       })
       setNurseryId(data.nursery_id ?? null)
       setAllergies(data.allergies ?? [])
@@ -267,6 +269,32 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                 <input value={form.epipen_location} onChange={e => setForm({ ...form, epipen_location: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="例：バッグ内・赤いポーチ" />
               </div>
             )}
+
+            {/* 紛失モード */}
+            <div className={`rounded-xl p-4 border ${form.is_lost ? 'bg-[#FCEAEA] border-[#E8AAAA]' : 'bg-[#F4F7F5] border-[#E0EAE2]'}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className={`text-sm font-black mb-1 ${form.is_lost ? 'text-[#B83030]' : 'text-[#5A6E62]'}`}>
+                    🔒 紛失モード
+                  </div>
+                  <div className="text-xs text-[#7A8E80] leading-relaxed">
+                    ONにするとタグのURLにアクセスしても情報が表示されなくなります。発見者には「保護者に知らせる」ボタンのみ表示されます。
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, is_lost: !form.is_lost })}
+                  className={`flex-shrink-0 w-14 h-7 rounded-full transition-colors relative ${form.is_lost ? 'bg-[#B83030]' : 'bg-[#D0D8D4]'}`}
+                >
+                  <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${form.is_lost ? 'translate-x-7' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+              {form.is_lost && (
+                <div className="mt-3 text-xs font-bold text-[#B83030] bg-white rounded-lg px-3 py-2 border border-[#E8AAAA]">
+                  現在、公開URLは無効化されています
+                </div>
+              )}
+            </div>
           </div>
         )}
 

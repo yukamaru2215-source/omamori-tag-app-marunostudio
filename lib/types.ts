@@ -14,6 +14,7 @@ export type Child = {
   has_epipen: boolean
   epipen_location: string | null
   slug: string
+  is_lost: boolean
   created_at: string
   updated_at: string
 }

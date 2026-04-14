@@ -12,6 +12,8 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [baseUrl, setBaseUrl] = useState('')
+  const [reissuing, setReissuing] = useState(false)
+  const [reissued, setReissued] = useState(false)
 
   useEffect(() => {
     setBaseUrl(window.location.origin)
@@ -38,6 +40,29 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleReissueSlug() {
+    if (!child) return
+    if (!confirm('URLを再発行しますか？\n\n古いURLは無効になり、NFCタグへの書き直しが必要になります。\nこの操作は取り消せません。')) return
+    setReissuing(true)
+    const newSlug = Array.from(crypto.getRandomValues(new Uint8Array(12)))
+      .map(b => b.toString(36).padStart(2, '0')).join('')
+    const { data, error } = await supabase
+      .from('children')
+      .update({ slug: newSlug })
+      .eq('id', id)
+      .select('*')
+      .single()
+    if (error || !data) {
+      alert('再発行に失敗しました')
+      setReissuing(false)
+      return
+    }
+    setChild(data)
+    setReissued(true)
+    setReissuing(false)
+    setTimeout(() => setReissued(false), 3000)
   }
 
   if (loading) return (
@@ -68,6 +93,22 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
             </button>
             <a href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(kidUrl)}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm text-center">📱 QRコード</a>
           </div>
+        </div>
+
+        {/* URL再発行 */}
+        <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
+          <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🔄 URLを再発行する</div>
+          <div className="text-xs text-[#7A8E80] leading-relaxed mb-4">
+            タグを紛失した場合など、現在のURLを完全に無効化して新しいURLを発行できます。<br />
+            <span className="text-[#B83030] font-bold">再発行後はNFCタグへの書き直しが必要です。</span>
+          </div>
+          <button
+            onClick={handleReissueSlug}
+            disabled={reissuing}
+            className={`w-full py-3 rounded-xl font-bold text-sm border ${reissued ? 'bg-[#E6F4EC] text-[#1A6640] border-[#B8D9C8]' : 'bg-[#FCEAEA] text-[#B83030] border-[#E8AAAA]'} disabled:opacity-50`}
+          >
+            {reissuing ? '処理中...' : reissued ? '✓ 新しいURLを発行しました' : '⚠️ URLを再発行する（旧URLは無効になります）'}
+          </button>
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4 text-center">

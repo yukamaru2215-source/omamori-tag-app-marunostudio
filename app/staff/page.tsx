@@ -71,6 +71,34 @@ export default function StaffPage() {
     }
   }, [])
 
+  // 30分無操作で自動ログアウト（操作があるたびにexpiresAtも延長）
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>
+    const reset = () => {
+      clearTimeout(timer)
+      try {
+        const raw = sessionStorage.getItem('staff_token')
+        if (raw) {
+          const token = JSON.parse(raw)
+          token.expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+          sessionStorage.setItem('staff_token', JSON.stringify(token))
+        }
+      } catch {}
+      timer = setTimeout(() => {
+        sessionStorage.removeItem('staff_token')
+        setNotAuthed(true)
+      }, 30 * 60 * 1000)
+    }
+    window.addEventListener('touchstart', reset)
+    window.addEventListener('mousemove', reset)
+    reset()
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('touchstart', reset)
+      window.removeEventListener('mousemove', reset)
+    }
+  }, [])
+
   useEffect(() => {
     if (!nurseryId) return
     loadAll()
