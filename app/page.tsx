@@ -29,6 +29,12 @@ export default function Home() {
           >
             ❓ よくある質問・使い方
           </Link>
+          <Link
+            href="/pricing"
+            className="text-center py-3 rounded-2xl font-bold text-sm text-[#1A6640] border border-[#B8D9C8] bg-white"
+          >
+            💴 料金表
+          </Link>
         </div>
       </div>
     </main>

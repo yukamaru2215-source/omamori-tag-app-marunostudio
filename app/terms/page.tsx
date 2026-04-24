@@ -57,14 +57,27 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-black text-[#0E1A12] mb-2">第5条（規約の変更）</h2>
+            <h2 className="font-black text-[#0E1A12] mb-2">第5条（料金）</h2>
+            <p>本サービスの利用料金は、別途定める料金表に従います。料金は予告なく変更される場合があり、変更後の料金は料金表ページにて告知します。</p>
+            <div className="mt-2">
+              <Link href="/pricing" className="text-sm text-[#1A6640] font-bold underline">
+                料金表を見る →
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-black text-[#0E1A12] mb-2">第6条（規約の変更）</h2>
             <p>本規約は予告なく変更される場合があります。変更後も継続してご利用いただいた場合、変更に同意したものとみなします。</p>
           </div>
 
           <p className="text-xs text-[#7A8E80] pt-2">お問い合わせ：marunostudio@example.com</p>
         </div>
 
-        <div className="text-center mt-6">
+        <div className="flex flex-col items-center gap-3 mt-6">
+          <Link href="/pricing" className="text-sm text-[#1A6640] font-bold underline">
+            料金表を見る →
+          </Link>
           <Link href="/privacy" className="text-sm text-[#1A6640] font-bold underline">
             プライバシーポリシーを見る →
           </Link>

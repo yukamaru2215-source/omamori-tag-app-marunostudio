@@ -112,7 +112,7 @@ export default function FlyerStaffPage() {
         {/* フッター */}
         <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
           <div>
-            <div className="text-xs text-gray-500">月額利用料 <span className="font-bold text-gray-700">¥1,000</span>（税込）／ 提供：marunostudio</div>
+            <div className="text-xs text-gray-500">提供：marunostudio</div>
             <div className="text-xs text-gray-400 mt-0.5">お子様の安心を、いつも手元に。</div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}

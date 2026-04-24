@@ -72,7 +72,7 @@ const FAQS = [
     items: [
       {
         q: 'タグはどこで買えますか？',
-        a: '現在は注文フォームからのご購入のみ対応しています。保護者向けタグは1枚500円（税込）です。保育園・こども園への導入をご検討の場合はお問い合わせください。',
+        a: '現在は注文フォームからのご購入のみ対応しています。タグの価格は料金表ページをご確認ください。保育園・こども園への導入をご検討の場合はお問い合わせください。',
       },
       {
         q: '3Dプリント製品とのことですが、耐久性は大丈夫ですか？',
@@ -80,7 +80,7 @@ const FAQS = [
       },
       {
         q: '月額料金はかかりますか？',
-        a: '保護者の方はタグ購入費のみで月額料金はかかりません。保育園・こども園単位でのご契約は月額1,000円（税込）となります。',
+        a: '保護者の方はタグ購入費のみで月額料金はかかりません。保育園・こども園単位でのご契約については、料金表ページをご確認ください。',
       },
     ],
   },
@@ -131,7 +131,14 @@ export default function FaqPage() {
           ))}
         </div>
 
-        <div className="text-center mt-8 text-sm text-[#7A8E80]">
+        <div className="bg-white rounded-2xl border border-[#E0EAE2] shadow-sm p-5 mt-8 text-center">
+          <div className="text-sm font-bold text-[#0E1A12] mb-1">料金について詳しくは</div>
+          <Link href="/pricing" className="text-[#1A6640] font-bold underline text-sm">
+            料金表を見る →
+          </Link>
+        </div>
+
+        <div className="text-center mt-6 text-sm text-[#7A8E80]">
           解決しない場合はお問い合わせください。
           <div className="mt-1">
             <a href="mailto:info@marunostudio.com" className="text-[#1A6640] font-bold underline">info@marunostudio.com</a>
