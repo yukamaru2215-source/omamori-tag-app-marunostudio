@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'おまもりタグ',
-  description: 'NFCタグで子どもの健康情報を安全に管理',
+  description: 'NFCタグで健康情報を安全に管理',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

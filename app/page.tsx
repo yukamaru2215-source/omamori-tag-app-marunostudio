@@ -22,7 +22,7 @@ export default function Home() {
             おまもりタグアプリ
           </h1>
           <p className="text-sm text-[#7A8E80]">
-            園児の健康情報をNFCタグで安全に管理
+            健康情報をNFCタグで安全に管理
           </p>
         </div>
 
