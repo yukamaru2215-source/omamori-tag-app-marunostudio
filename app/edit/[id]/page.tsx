@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Allergy, Condition, Medication, EmergencyContact, Doctor, FieldVisibility, DEFAULT_FIELD_VISIBILITY, VISIBILITY_FIELD_LABELS } from '@/lib/types'
+import { Allergy, Condition, Medication, EmergencyContact, Doctor, FieldVisibility, DEFAULT_FIELD_VISIBILITY } from '@/lib/types'
 
 type Group = { id: string; name: string }
 
@@ -12,7 +12,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [savedTab, setSavedTab] = useState<string | null>(null)
-  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor' | 'group' | 'visibility'>('basic')
+  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor' | 'group'>('basic')
   const [form, setForm] = useState({
     display_name: '', full_name: '', kana: '', age: '',
     birthdate: '',
@@ -21,7 +21,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   })
   const [nurseryId, setNurseryId] = useState<string | null>(null)
   const [fieldVisibility, setFieldVisibility] = useState<FieldVisibility>(DEFAULT_FIELD_VISIBILITY)
-  const [savingVisibility, setSavingVisibility] = useState(false)
   const [allergies, setAllergies] = useState<Allergy[]>([])
   const [conditions, setConditions] = useState<Condition[]>([])
   const [medications, setMedications] = useState<Medication[]>([])
@@ -112,16 +111,23 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     setTimeout(() => setSavedTab(null), 2000)
   }
 
-  async function handleSaveVisibility() {
-    setSavingVisibility(true)
-    await supabase.from('children').update({ field_visibility: fieldVisibility }).eq('id', id)
-    setSavingVisibility(false)
-    setSavedTab('visibility')
-    setTimeout(() => setSavedTab(null), 2000)
+  async function toggleVisibility(key: keyof FieldVisibility) {
+    const next = { ...fieldVisibility, [key]: fieldVisibility[key] === 'public' ? 'locked' as const : 'public' as const }
+    setFieldVisibility(next)
+    await supabase.from('children').update({ field_visibility: next }).eq('id', id)
   }
 
-  function toggleVisibility(key: keyof FieldVisibility) {
-    setFieldVisibility((prev) => ({ ...prev, [key]: prev[key] === 'public' ? 'locked' : 'public' }))
+  function visibilityBadge(field: keyof FieldVisibility) {
+    const isPublic = fieldVisibility[field] === 'public'
+    return (
+      <button
+        type="button"
+        onClick={() => toggleVisibility(field)}
+        className={`flex-shrink-0 px-2.5 py-1 rounded-full font-bold text-xs ${isPublic ? 'bg-[#E6F4EC] text-[#1A6640] border border-[#B8D9C8]' : 'bg-[#FDF5E4] text-[#926010] border border-[#E8C880]'}`}
+      >
+        {isPublic ? '🔓 公開' : nurseryId ? '🔒 鍵付き' : '🙈 非表示'}
+      </button>
+    )
   }
 
   function toggleGroup(groupId: string) {
@@ -202,7 +208,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   )
 
   const TABS = [
-    { id: 'visibility', label: '表示設定' },
     { id: 'basic', label: '基本' },
     ...(nurseryId ? [{ id: 'group', label: 'グループ' }] : []),
     { id: 'allergy', label: 'アレルギー' },
@@ -238,6 +243,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
           ))}
         </div>
 
+        <div className="text-xs text-[#7A8E80] mb-3 leading-relaxed">
+          各項目の🔓/{nurseryId ? '🔒' : '🙈'}ボタンで、その項目を{nurseryId ? 'スタッフ認証をした人だけに見せる（鍵付き）' : '誰にも表示しない（非表示）'}か選べます。押すとすぐに反映されます。
+        </div>
+
         <div className="bg-[#FDF5E4] rounded-xl px-4 py-3 border border-[#E8C880] mb-4 text-xs text-[#926010] leading-relaxed">
           <span className="font-bold">⚠️ ご確認ください：</span>登録情報（古い情報・誤った情報を含む）の最新性・正確性はお客様（保護者）が管理・更新するものとします。これらによるトラブルについて運営者は一切の責任を負いません。また、ネットワーク障害等により緊急時に閲覧できない場合があることをご了承ください。
         </div>
@@ -249,7 +258,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
               <input value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] mb-1">フルネーム</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-black text-[#7A8E80]">フルネーム</label>
+                {visibilityBadge('full_name')}
+              </div>
               <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>
@@ -257,7 +269,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
               <input value={form.kana} onChange={e => setForm({ ...form, kana: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] mb-1">生年月日 <span className="font-normal text-[#B0C0B8]">（スタッフのみ閲覧）</span></label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-black text-[#7A8E80]">生年月日</label>
+                {visibilityBadge('birthdate')}
+              </div>
               <input value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" type="date" />
             </div>
             <div className="flex gap-3">
@@ -281,7 +296,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             </div>
             {form.has_epipen && (
               <div>
-                <label className="block text-xs font-black text-[#7A8E80] mb-1">保管場所</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-black text-[#7A8E80]">保管場所</label>
+                  {visibilityBadge('epipen_location')}
+                </div>
                 <input value={form.epipen_location} onChange={e => setForm({ ...form, epipen_location: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="例：バッグ内・赤いポーチ" />
               </div>
             )}
@@ -319,6 +337,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
         {tab === 'allergy' && (
           <div className="space-y-3">
+            <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
+              <span className="text-xs font-black text-[#7A8E80] uppercase tracking-widest">⚠️ アレルギー情報</span>
+              {visibilityBadge('allergies')}
+            </div>
             {allergies.map(a => (
               <div key={a.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-between mb-3">
@@ -337,6 +359,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
         {tab === 'condition' && (
           <div className="space-y-3">
+            <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
+              <span className="text-xs font-black text-[#7A8E80] uppercase tracking-widest">🫀 持病・既往歴</span>
+              {visibilityBadge('conditions')}
+            </div>
             {conditions.map(c => (
               <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-end mb-3">
@@ -352,6 +378,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
         {tab === 'medication' && (
           <div className="space-y-3">
+            <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
+              <span className="text-xs font-black text-[#7A8E80] uppercase tracking-widest">💊 持薬・医療器具</span>
+              {visibilityBadge('medications')}
+            </div>
             {medications.map(m => (
               <div key={m.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-end mb-3">
@@ -368,6 +398,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
         {tab === 'contact' && (
           <div className="space-y-3">
+            <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
+              <span className="text-xs font-black text-[#7A8E80] uppercase tracking-widest">📞 緊急連絡先</span>
+              {visibilityBadge('emergency_contacts')}
+            </div>
             {contacts.map(c => (
               <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-end mb-3">
@@ -384,6 +418,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
 
         {tab === 'doctor' && (
           <div className="space-y-3">
+            <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 border border-[#E0EAE2] shadow-sm">
+              <span className="text-xs font-black text-[#7A8E80] uppercase tracking-widest">🏥 かかりつけ医</span>
+              {visibilityBadge('doctors')}
+            </div>
             {doctors.map(d => (
               <div key={d.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm">
                 <div className="flex justify-end mb-3">
@@ -439,51 +477,9 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
         )}
-        {/* 表示設定タブ */}
-        {tab === 'visibility' && (
-          <div>
-            <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm">
-              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">🔓 表示項目の設定</div>
-              <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
-                {nurseryId
-                  ? '各項目を「公開」（タグをかざした人が誰でも見られる）か「鍵付き」（スタッフ認証をした人だけが見られる）か選べます。'
-                  : '各項目を「公開」（タグをかざした人が誰でも見られる）か「非表示」（誰にも表示せず、この編集画面でのみ確認できる）か選べます。'}
-              </div>
-              <div className="space-y-2">
-                {(Object.keys(VISIBILITY_FIELD_LABELS) as (keyof FieldVisibility)[]).map((key) => {
-                  const isPublic = fieldVisibility[key] === 'public'
-                  return (
-                    <div key={key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#F4F7F5] border border-[#E0EAE2]">
-                      <span className="text-sm font-bold text-[#0E1A12]">{VISIBILITY_FIELD_LABELS[key]}</span>
-                      <button
-                        type="button"
-                        onClick={() => toggleVisibility(key)}
-                        className={`flex-shrink-0 px-3 py-2 rounded-xl font-bold text-xs ${isPublic ? 'bg-[#E6F4EC] text-[#1A6640] border border-[#B8D9C8]' : 'bg-[#FDF5E4] text-[#926010] border border-[#E8C880]'}`}
-                      >
-                        {isPublic ? '🔓 公開' : nurseryId ? '🔒 鍵付き' : '🙈 非表示'}
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
-              <div className="max-w-md mx-auto">
-                <button
-                  onClick={handleSaveVisibility}
-                  disabled={savingVisibility}
-                  className={'w-full py-4 rounded-2xl font-black text-lg text-white ' + (savedTab === 'visibility' ? 'bg-[#238C56]' : 'bg-[#1A6640]') + ' disabled:opacity-50'}
-                >
-                  {savingVisibility ? '保存中...' : savedTab === 'visibility' ? '✓ 保存しました' : '表示設定を保存する'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {tab !== 'group' && tab !== 'visibility' && <SaveBtn tabName={tab} />}
+      {tab !== 'group' && <SaveBtn tabName={tab} />}
 
       {/* 削除・解除ボタン（basicタブのみ表示） */}
       {tab === 'basic' && (
