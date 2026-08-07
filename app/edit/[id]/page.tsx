@@ -202,6 +202,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   )
 
   const TABS = [
+    { id: 'visibility', label: '表示設定' },
     { id: 'basic', label: '基本' },
     ...(nurseryId ? [{ id: 'group', label: 'グループ' }] : []),
     { id: 'allergy', label: 'アレルギー' },
@@ -209,7 +210,6 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     { id: 'medication', label: '持薬' },
     { id: 'contact', label: '連絡先' },
     { id: 'doctor', label: '医師' },
-    { id: 'visibility', label: '表示設定' },
   ] as const
 
   const SaveBtn = ({ tabName }: { tabName: string }) => (
