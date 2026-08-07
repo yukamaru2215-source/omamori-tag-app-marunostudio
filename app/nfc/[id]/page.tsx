@@ -116,7 +116,7 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
           {baseUrl && (
             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(kidUrl)}`} alt="QRコード" className="mx-auto rounded-xl" width={200} height={200} />
           )}
-          <div className="text-xs text-[#7A8E80] mt-3">{child.display_name} の医療情報QRコード</div>
+          <div className="text-xs text-[#7A8E80] mt-3">{child.display_name} の健康情報QRコード</div>
         </div>
 
         <div className="bg-[#EBF0FA] rounded-2xl p-5 border border-[#A0BCE8]">

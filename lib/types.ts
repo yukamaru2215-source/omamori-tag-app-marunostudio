@@ -1,6 +1,40 @@
 export type Severity = '重篤' | '中程度' | '軽度'
 export type BloodType = 'A型' | 'B型' | 'O型' | 'AB型' | '不明'
 
+export type VisibilityLevel = 'public' | 'locked'
+
+export type FieldVisibility = {
+  birthdate: VisibilityLevel
+  allergies: VisibilityLevel
+  conditions: VisibilityLevel
+  epipen_location: VisibilityLevel
+  medications: VisibilityLevel
+  emergency_contacts: VisibilityLevel
+  doctors: VisibilityLevel
+}
+
+// 保育園などスタッフ認証の仕組みがあるタグにおける、これまでの挙動（決め打ちの公開/鍵付き）と
+// 同じ結果になるデフォルト値。マイグレーション未適用の古いレコードのフォールバックにも使う。
+export const DEFAULT_FIELD_VISIBILITY: FieldVisibility = {
+  birthdate: 'locked',
+  allergies: 'public',
+  conditions: 'public',
+  epipen_location: 'locked',
+  medications: 'locked',
+  emergency_contacts: 'locked',
+  doctors: 'locked',
+}
+
+export const VISIBILITY_FIELD_LABELS: Record<keyof FieldVisibility, string> = {
+  birthdate: '🎂 生年月日',
+  allergies: '⚠️ アレルギー情報',
+  conditions: '🫀 持病・既往歴',
+  epipen_location: '💉 エピペンの保管場所',
+  medications: '💊 持薬・医療器具',
+  emergency_contacts: '📞 緊急連絡先',
+  doctors: '🏥 かかりつけ医',
+}
+
 export type Child = {
   id: string
   nursery_id: string | null
@@ -15,6 +49,7 @@ export type Child = {
   epipen_location: string | null
   slug: string
   is_lost: boolean
+  field_visibility: FieldVisibility
   created_at: string
   updated_at: string
 }

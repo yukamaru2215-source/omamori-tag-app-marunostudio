@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 function updateBadge(count: number) {
@@ -34,6 +35,7 @@ export default function InboxPage() {
   const [messages, setMessages] = useState<InboxMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [inboxDisabled, setInboxDisabled] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -45,7 +47,7 @@ export default function InboxPage() {
       // 受信メッセージ一覧
       const { data: recipients } = await supabase
         .from('message_recipients')
-        .select('message_id, messages(id, title, body, sent_at, nursery_id, nurseries(name))')
+        .select('message_id, messages(id, title, body, sent_at, nursery_id, nurseries(name, enable_parent_inbox))')
         .eq('parent_id', parentId)
 
       if (!recipients || recipients.length === 0) {
@@ -64,7 +66,7 @@ export default function InboxPage() {
 
       const readSet = new Set((reads ?? []).map((r) => r.message_id))
 
-      const items: InboxMessage[] = recipients
+      const allItems: InboxMessage[] = recipients
         .filter((r) => r.messages)
         .map((r) => {
           const msg = r.messages as unknown as {
@@ -72,7 +74,7 @@ export default function InboxPage() {
             title: string
             body: string
             sent_at: string
-            nurseries: { name: string } | null
+            nurseries: { name: string; enable_parent_inbox: boolean } | null
           }
           return {
             messageId: msg.id,
@@ -81,8 +83,17 @@ export default function InboxPage() {
             sentAt: msg.sent_at,
             nurseryName: msg.nurseries?.name ?? '保育園',
             isRead: readSet.has(msg.id),
+            enabled: msg.nurseries?.enable_parent_inbox ?? false,
           }
         })
+
+      // enable_parent_inbox が有効な園のメッセージのみ表示
+      const items = allItems.filter((m) => (m as any).enabled)
+      if (items.length === 0 && allItems.length > 0) {
+        setInboxDisabled(true)
+        setLoading(false)
+        return
+      }
 
       setMessages(items.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()))
       setLoading(false)
@@ -114,6 +125,17 @@ export default function InboxPage() {
   if (loading) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
       <div className="text-[#7A8E80]">読み込み中...</div>
+    </main>
+  )
+
+  if (inboxDisabled) return (
+    <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
+      <div className="max-w-sm w-full text-center">
+        <div className="text-5xl mb-4">📭</div>
+        <div className="font-black text-xl text-[#0E1A12] mb-3">この機能はご利用いただけません</div>
+        <div className="text-sm text-[#7A8E80] mb-6">ご利用の園では受信BOX機能が有効になっていません。</div>
+        <Link href="/" className="text-sm text-[#1A6640] font-bold underline">← トップページへ</Link>
+      </div>
     </main>
   )
 

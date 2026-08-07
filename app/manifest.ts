@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'おまもりタグ',
     short_name: 'おまもりタグ',
-    description: 'NFCタグで子どもの医療情報を安全に管理',
+    description: 'NFCタグで子どもの健康情報を安全に管理',
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SwRegister from "./sw-register";
+import FontSizeInit from "./font-size-init";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'おまもりタグ',
-  description: 'NFCタグで子どもの医療情報を安全に管理',
+  description: 'NFCタグで子どもの健康情報を安全に管理',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -30,7 +31,6 @@ export const viewport: Viewport = {
   themeColor: '#1A6640',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 }
 
 export default function RootLayout({
@@ -46,6 +46,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <SwRegister />
+        <FontSizeInit />
       </body>
     </html>
   );

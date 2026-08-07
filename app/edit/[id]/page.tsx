@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Allergy, Condition, Medication, EmergencyContact, Doctor } from '@/lib/types'
+import { Allergy, Condition, Medication, EmergencyContact, Doctor, FieldVisibility, DEFAULT_FIELD_VISIBILITY, VISIBILITY_FIELD_LABELS } from '@/lib/types'
 
 type Group = { id: string; name: string }
 
@@ -12,7 +12,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [savedTab, setSavedTab] = useState<string | null>(null)
-  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor' | 'group'>('basic')
+  const [tab, setTab] = useState<'basic' | 'allergy' | 'condition' | 'medication' | 'contact' | 'doctor' | 'group' | 'visibility'>('basic')
   const [form, setForm] = useState({
     display_name: '', full_name: '', kana: '', age: '',
     birthdate: '',
@@ -20,6 +20,8 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     is_lost: false,
   })
   const [nurseryId, setNurseryId] = useState<string | null>(null)
+  const [fieldVisibility, setFieldVisibility] = useState<FieldVisibility>(DEFAULT_FIELD_VISIBILITY)
+  const [savingVisibility, setSavingVisibility] = useState(false)
   const [allergies, setAllergies] = useState<Allergy[]>([])
   const [conditions, setConditions] = useState<Condition[]>([])
   const [medications, setMedications] = useState<Medication[]>([])
@@ -54,6 +56,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         is_lost: data.is_lost ?? false,
       })
       setNurseryId(data.nursery_id ?? null)
+      setFieldVisibility({ ...DEFAULT_FIELD_VISIBILITY, ...(data.field_visibility ?? {}) })
       setAllergies(data.allergies ?? [])
       setConditions(data.conditions ?? [])
       setMedications(data.medications ?? [])
@@ -107,6 +110,18 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     setSavingGroups(false)
     setSavedTab('group')
     setTimeout(() => setSavedTab(null), 2000)
+  }
+
+  async function handleSaveVisibility() {
+    setSavingVisibility(true)
+    await supabase.from('children').update({ field_visibility: fieldVisibility }).eq('id', id)
+    setSavingVisibility(false)
+    setSavedTab('visibility')
+    setTimeout(() => setSavedTab(null), 2000)
+  }
+
+  function toggleVisibility(key: keyof FieldVisibility) {
+    setFieldVisibility((prev) => ({ ...prev, [key]: prev[key] === 'public' ? 'locked' : 'public' }))
   }
 
   function toggleGroup(groupId: string) {
@@ -194,6 +209,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     { id: 'medication', label: '持薬' },
     { id: 'contact', label: '連絡先' },
     { id: 'doctor', label: '医師' },
+    ...(nurseryId ? [{ id: 'visibility', label: '表示設定' }] : []),
   ] as const
 
   const SaveBtn = ({ tabName }: { tabName: string }) => (
@@ -241,7 +257,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
               <input value={form.kana} onChange={e => setForm({ ...form, kana: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] mb-1">生年月日 <span className="font-normal text-[#B0C0B8]">（保育士のみ閲覧）</span></label>
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">生年月日 <span className="font-normal text-[#B0C0B8]">（スタッフのみ閲覧）</span></label>
               <input value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" type="date" />
             </div>
             <div className="flex gap-3">
@@ -278,7 +294,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                     🔒 紛失モード
                   </div>
                   <div className="text-xs text-[#7A8E80] leading-relaxed">
-                    ONにするとタグのURLにアクセスしても情報が表示されなくなります。発見者には「保護者に知らせる」ボタンのみ表示されます。
+                    ONにする
+                    
+                    
+                    とタグのURLにアクセスしても情報が表示されなくなります。発見者には「保護者に知らせる」ボタンのみ表示されます。
                   </div>
                 </div>
                 <button
@@ -420,9 +439,49 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
         )}
+        {/* 表示設定タブ */}
+        {tab === 'visibility' && (
+          <div>
+            <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">🔓 表示項目の設定</div>
+              <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
+                各項目を「公開」（タグをかざした人が誰でも見られる）か「鍵付き」（スタッフ認証をした人だけが見られる）か選べます。
+              </div>
+              <div className="space-y-2">
+                {(Object.keys(VISIBILITY_FIELD_LABELS) as (keyof FieldVisibility)[]).map((key) => {
+                  const isPublic = fieldVisibility[key] === 'public'
+                  return (
+                    <div key={key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#F4F7F5] border border-[#E0EAE2]">
+                      <span className="text-sm font-bold text-[#0E1A12]">{VISIBILITY_FIELD_LABELS[key]}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleVisibility(key)}
+                        className={`flex-shrink-0 px-3 py-2 rounded-xl font-bold text-xs ${isPublic ? 'bg-[#E6F4EC] text-[#1A6640] border border-[#B8D9C8]' : 'bg-[#FDF5E4] text-[#926010] border border-[#E8C880]'}`}
+                      >
+                        {isPublic ? '🔓 公開' : '🔒 鍵付き'}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#F4F7F5] border-t border-[#E0EAE2]">
+              <div className="max-w-md mx-auto">
+                <button
+                  onClick={handleSaveVisibility}
+                  disabled={savingVisibility}
+                  className={'w-full py-4 rounded-2xl font-black text-lg text-white ' + (savedTab === 'visibility' ? 'bg-[#238C56]' : 'bg-[#1A6640]') + ' disabled:opacity-50'}
+                >
+                  {savingVisibility ? '保存中...' : savedTab === 'visibility' ? '✓ 保存しました' : '表示設定を保存する'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {tab !== 'group' && <SaveBtn tabName={tab} />}
+      {tab !== 'group' && tab !== 'visibility' && <SaveBtn tabName={tab} />}
 
       {/* 削除・解除ボタン（basicタブのみ表示） */}
       {tab === 'basic' && (

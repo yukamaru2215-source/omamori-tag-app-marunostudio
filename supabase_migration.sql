@@ -83,3 +83,9 @@ CREATE POLICY "message_recipients_select_auth" ON message_recipients FOR SELECT 
 -- message_reads: トラッキングピクセルのため誰でも挿入可・認証済みは読める
 CREATE POLICY "message_reads_select_auth"  ON message_reads FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "message_reads_insert_all"   ON message_reads FOR INSERT WITH CHECK (true);
+
+-- ============================================
+-- 受信BOX機能 マイグレーション
+-- ============================================
+
+ALTER TABLE nurseries ADD COLUMN IF NOT EXISTS enable_parent_inbox BOOLEAN DEFAULT FALSE;

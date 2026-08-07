@@ -206,9 +206,9 @@ export default function StaffPage() {
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
       <div className="max-w-sm w-full text-center">
         <div className="text-6xl mb-4">🔒</div>
-        <div className="font-black text-xl text-[#0E1A12] mb-3">保育士認証が必要です</div>
+        <div className="font-black text-xl text-[#0E1A12] mb-3">スタッフ認証が必要です</div>
         <div className="text-sm text-[#7A8E80] leading-relaxed mb-6">
-          保育士用NFCタグをかざして認証してください
+          スタッフ用NFCタグをかざして認証してください
         </div>
         <button onClick={() => router.push('/')} className="text-sm text-[#7A8E80]">← トップページへ</button>
       </div>
@@ -230,8 +230,8 @@ export default function StaffPage() {
 
         {/* ヘッダー */}
         <div className="py-4 mb-2">
-          <div className="text-xs text-[#7A8E80]">保育士メニュー</div>
-          <div className="font-black text-xl text-[#0E1A12]">{nurseryName || '保育士ダッシュボード'}</div>
+          <div className="text-xs text-[#7A8E80]">スタッフメニュー</div>
+          <div className="font-black text-xl text-[#0E1A12]">{nurseryName || 'スタッフダッシュボード'}</div>
         </div>
 
         {/* 一斉連絡ボタン */}

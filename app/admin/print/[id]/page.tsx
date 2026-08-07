@@ -134,7 +134,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             <div className="font-black text-xs mb-1">NFCタグ（おまもりタグ）とは？</div>
             <div className="text-xs leading-relaxed opacity-90">
               お子様の持ち物につける小さなタグです。スマートフォンをかざすだけで<span className="font-bold">アレルギー・持病・緊急連絡先</span>にすぐアクセスできます。
-              もしものときに素早く情報を伝えられます。詳細な医療情報は<span className="font-bold">保育士のみ</span>閲覧可能で、誰でも見えるわけではありません。
+              もしものときに素早く情報を伝えられます。詳細な健康情報は<span className="font-bold">保育士のみ</span>閲覧可能で、誰でも見えるわけではありません。
             </div>
           </div>
         </div>

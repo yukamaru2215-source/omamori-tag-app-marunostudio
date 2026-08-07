@@ -40,7 +40,7 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false)
   const [remindingId, setRemindingId] = useState<string | null>(null)
 
-  // 保育士認証チェック（sessionStorage）
+  // スタッフ認証チェック（sessionStorage）
   useEffect(() => {
     const raw = sessionStorage.getItem('staff_token')
     if (!raw) { setNotAuthed(true); setLoading(false); return }
@@ -177,9 +177,9 @@ export default function MessagesPage() {
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
       <div className="max-w-sm w-full text-center">
         <div className="text-6xl mb-4">🔒</div>
-        <div className="font-black text-xl text-[#0E1A12] mb-3">保育士認証が必要です</div>
+        <div className="font-black text-xl text-[#0E1A12] mb-3">スタッフ認証が必要です</div>
         <div className="text-sm text-[#7A8E80] leading-relaxed mb-6">
-          保育士用NFCタグをかざして認証後、<br />このページにアクセスしてください。
+          スタッフ用NFCタグをかざして認証後、<br />このページにアクセスしてください。
         </div>
         <button onClick={() => router.push('/')} className="text-sm text-[#7A8E80]">← トップページへ</button>
       </div>
@@ -199,7 +199,7 @@ export default function MessagesPage() {
         {/* ヘッダー */}
         <div className="flex items-center justify-between py-4 mb-4">
           <div>
-            <div className="text-xs text-[#7A8E80]">保育士メニュー</div>
+            <div className="text-xs text-[#7A8E80]">スタッフメニュー</div>
             <div className="font-black text-xl text-[#0E1A12]">一斉連絡</div>
           </div>
           <button onClick={() => router.back()} className="text-sm text-[#7A8E80] border border-[#E0EAE2] px-3 py-2 rounded-xl bg-white">← 戻る</button>

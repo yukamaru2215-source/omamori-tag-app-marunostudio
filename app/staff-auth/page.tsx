@@ -32,8 +32,8 @@ function StaffAuthContent() {
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-8">
       <div className="text-center max-w-sm">
         <div className="text-5xl mb-4">🔒</div>
-        <div className="font-black text-xl text-[#0E1A12] mb-3">保育士用NFCタグが必要です</div>
-        <div className="text-sm text-[#7A8E80] leading-relaxed">このページは保育士用NFCタグをかざすことでのみアクセスできます。</div>
+        <div className="font-black text-xl text-[#0E1A12] mb-3">スタッフ用NFCタグが必要です</div>
+        <div className="text-sm text-[#7A8E80] leading-relaxed">このページはスタッフ用NFCタグをかざすことでのみアクセスできます。</div>
       </div>
     </main>
   )
@@ -43,7 +43,7 @@ function StaffAuthContent() {
       <div className="text-center">
         <div className="text-4xl mb-4">❌</div>
         <div className="font-black text-[#0E1A12] mb-2">無効なURLです</div>
-        <div className="text-sm text-[#7A8E80]">正しい保育士用NFCタグを使用してください</div>
+        <div className="text-sm text-[#7A8E80]">正しいスタッフ用NFCタグを使用してください</div>
       </div>
     </main>
   )
@@ -126,8 +126,8 @@ function StaffAuthContent() {
     <main className="min-h-screen bg-[#F4F7F5] flex flex-col items-center justify-center p-8">
       <div className="max-w-sm w-full">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">👩‍🏫</div>
-          <div className="font-black text-2xl text-[#0E1A12] mb-1">保育士認証</div>
+          <div className="text-5xl mb-4">🧑‍💼</div>
+          <div className="font-black text-2xl text-[#0E1A12] mb-1">スタッフ認証</div>
           {nurseryName && <div className="text-sm text-[#1A6640] font-bold bg-[#E6F4EC] px-4 py-1 rounded-full inline-block mt-1">{nurseryName}</div>}
           <div className="text-sm text-[#7A8E80] mt-3">4桁のPINコードを入力してください</div>
         </div>

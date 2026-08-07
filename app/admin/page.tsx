@@ -10,6 +10,7 @@ type Nursery = {
   code: string | null
   staff_auth_key: string
   phone: string | null
+  enable_parent_inbox: boolean
   created_at: string
 }
 
@@ -32,6 +33,8 @@ export default function AdminPage() {
   const [phones, setPhones] = useState<Record<string, string>>({})
   const [savedPin, setSavedPin] = useState<string | null>(null)
   const [savedPhone, setSavedPhone] = useState<string | null>(null)
+
+  const [togglingInbox, setTogglingInbox] = useState<string | null>(null)
 
   // グループ管理
   const [groups, setGroups] = useState<Record<string, Group[]>>({})
@@ -172,6 +175,13 @@ export default function AdminPage() {
     setSavingGroup(null)
   }
 
+  async function handleToggleInbox(nurseryId: string, current: boolean) {
+    setTogglingInbox(nurseryId)
+    await supabase.from('nurseries').update({ enable_parent_inbox: !current }).eq('id', nurseryId)
+    await loadNurseries()
+    setTogglingInbox(null)
+  }
+
   async function handleDeleteGroup(groupId: string, nurseryId: string) {
     if (!confirm('このグループを削除しますか？子どもとのグループ紐づけも削除されます。')) return
     const { error } = await supabase.from('groups').delete().eq('id', groupId)
@@ -222,7 +232,7 @@ export default function AdminPage() {
           </div>
           <div className="flex gap-2">
 <button onClick={() => window.open('/admin/proposal', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">📋 提案書</button>
-            <button onClick={() => window.open('/admin/flyer-staff', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">👩‍🏫 スタッフ向け</button>
+            <button onClick={() => window.open('/admin/flyer-staff', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">🧑‍💼 スタッフ向け</button>
             <button onClick={() => window.open('/admin/flyer', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">🏷️ 保護者向け</button>
             <button onClick={() => router.push('/dashboard')} className="text-sm text-[#7A8E80] border border-[#E0EAE2] px-3 py-2 rounded-xl bg-white">← 戻る</button>
           </div>
@@ -242,7 +252,7 @@ export default function AdminPage() {
               <div className="text-xs text-[#7A8E80] mt-1">英数字・大文字で保存されます</div>
             </div>
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] mb-1">保育士PIN（4桁）*</label>
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">スタッフPIN（4桁）*</label>
               <input value={newPin} onChange={e => setNewPin(e.target.value.slice(0, 4))} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="例：1234" type="number" />
             </div>
             <button onClick={handleAdd} disabled={adding || !newName || !newPin} className="w-full bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-50">
@@ -293,9 +303,9 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* 保育士NFC URL */}
+            {/* スタッフNFC URL */}
             <div className="px-5 py-4 border-b border-[#E0EAE2]">
-              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🏷️ 保育士用NFCタグURL</div>
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🏷️ スタッフ用NFCタグURL</div>
               <div className="bg-[#F4F7F5] rounded-xl px-3 py-2 text-xs font-mono text-[#0E1A12] break-all mb-3 border border-[#E0EAE2]">
                 {getStaffUrl(n)}
               </div>
@@ -310,15 +320,15 @@ export default function AdminPage() {
               {showQR === n.id && (
                 <div className="mt-3 text-center">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(getStaffUrl(n))}`} alt="QRコード" className="mx-auto rounded-xl" width={180} height={180} />
-                  <div className="text-xs text-[#7A8E80] mt-2">保育士用NFCタグに書き込むURL</div>
+                  <div className="text-xs text-[#7A8E80] mt-2">スタッフ用NFCタグに書き込むURL</div>
                 </div>
               )}
             </div>
 
             {/* スタッフダッシュボードURL */}
             <div className="px-5 py-4 border-b border-[#E0EAE2]">
-              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 スタッフ用ダッシュボードURL</div>
-              <div className="text-xs text-[#7A8E80] mb-2">認証後に保育士ダッシュボードへ直接移動するURL</div>
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🧑‍💼 スタッフ用ダッシュボードURL</div>
+              <div className="text-xs text-[#7A8E80] mb-2">認証後にスタッフダッシュボードへ直接移動するURL</div>
               <div className="bg-[#F4F7F5] rounded-xl px-3 py-2 text-xs font-mono text-[#0E1A12] break-all mb-3 border border-[#E0EAE2]">
                 {getStaffDashboardUrl(n)}
               </div>
@@ -372,6 +382,24 @@ export default function AdminPage() {
                   className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-xs disabled:opacity-50"
                 >
                   {savingGroup === n.id ? '...' : '追加'}
+                </button>
+              </div>
+            </div>
+
+            {/* 受信BOX */}
+            <div className="px-5 py-4 border-b border-[#E0EAE2]">
+              <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">📬 保護者受信BOX</div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold text-[#0E1A12]">受信BOX機能</div>
+                  <div className="text-xs text-[#7A8E80] mt-0.5">保護者がアプリ内でメッセージを閲覧できます</div>
+                </div>
+                <button
+                  onClick={() => handleToggleInbox(n.id, n.enable_parent_inbox)}
+                  disabled={togglingInbox === n.id}
+                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${n.enable_parent_inbox ? 'bg-[#1A6640]' : 'bg-[#E0EAE2]'} disabled:opacity-50`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${n.enable_parent_inbox ? 'translate-x-7' : 'translate-x-1'}`} />
                 </button>
               </div>
             </div>

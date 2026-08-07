@@ -4,7 +4,8 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { ChildFull } from '@/lib/types'
+import { ChildFull, DEFAULT_FIELD_VISIBILITY } from '@/lib/types'
+import FontSizeToggle from '@/app/components/FontSizeToggle'
 
 export default function KidPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
@@ -183,6 +184,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   )
 
   const hasSevere = child.allergies?.some(a => a.severity === '重篤')
+  const vis = { ...DEFAULT_FIELD_VISIBILITY, ...(child.field_visibility ?? {}) }
+  const hasLockedContent = Object.values(vis).some(v => v === 'locked')
 
   return (
     <main className="min-h-screen bg-[#F4F7F5]">
@@ -195,10 +198,11 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
       <div className="max-w-md mx-auto p-4 pb-16">
         <div className="flex items-center gap-3 py-4 mb-2">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
-          <div className="font-black text-xl text-[#0E1A12] flex-1">{child.display_name} の医療情報</div>
+          <div className="font-black text-xl text-[#0E1A12] flex-1">{child.display_name} の健康情報</div>
+          <FontSizeToggle />
           {staffAuthed && (
             <button onClick={handleStaffLogout} className="text-xs bg-[#E6F4EC] text-[#1A6640] px-3 py-1 rounded-full font-bold border border-[#B8D9C8]">
-              👩‍🏫 認証済 ✕
+              🧑‍💼 スタッフ認証済 ✕
             </button>
           )}
         </div>
@@ -218,7 +222,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         </div>
 
         {/* アレルギー */}
-        {child.allergies && child.allergies.length > 0 && (
+        {(vis.allergies === 'public' || staffAuthed) && child.allergies && child.allergies.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
             <div className="px-4 py-3 bg-[#FCEAEA] border-b border-[#E8AAAA]">
               <span className="text-xs font-black text-[#B83030] uppercase tracking-widest">⚠️ アレルギー情報</span>
@@ -236,7 +240,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
         )}
 
         {/* 持病 */}
-        {child.conditions && child.conditions.length > 0 && (
+        {(vis.conditions === 'public' || staffAuthed) && child.conditions && child.conditions.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
             <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
               <span className="text-xs font-black text-[#1A50A0] uppercase tracking-widest">🫀 持病・既往歴</span>
@@ -259,81 +263,81 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             <span className={`font-bold px-4 py-2 rounded-xl ${child.has_epipen ? 'bg-[#FCEAEA] text-[#B83030]' : 'bg-[#F2F4F2] text-[#7A8E80]'}`}>
               {child.has_epipen ? '✓ 所持あり' : '所持なし'}
             </span>
-            {staffAuthed && child.has_epipen && child.epipen_location && (
+            {(vis.epipen_location === 'public' || staffAuthed) && child.has_epipen && child.epipen_location && (
               <span className="text-sm text-[#7A8E80]">📍 {child.epipen_location}</span>
             )}
           </div>
         </div>
 
-        {/* 保育士認証済みの詳細情報 */}
-        {staffAuthed && (
-          <>
-            {child.birthdate && (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
-                <div className="px-4 py-3 bg-[#F4F7F5] border-b border-[#E0EAE2]">
-                  <span className="text-xs font-black text-[#5A6E62] uppercase tracking-widest">🎂 生年月日</span>
-                </div>
-                <div className="p-4 font-bold text-[#0E1A12]">
-                  {new Date(child.birthdate).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </div>
-              </div>
-            )}
-            {child.medications && child.medications.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
-                <div className="px-4 py-3 bg-[#FDF5E4] border-b border-[#E8C880]">
-                  <span className="text-xs font-black text-[#926010] uppercase tracking-widest">💊 持薬・医療器具</span>
-                </div>
-                {child.medications.map((m, i) => (
-                  <div key={m.id} className={`p-4 ${i < child.medications.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
-                    <div className="font-bold text-[#0E1A12] mb-1">{m.name}</div>
-                    <div className="text-sm text-[#7A8E80]">📍 {m.location}</div>
-                    <div className="text-sm text-[#7A8E80]">{m.dosage}</div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* 生年月日 */}
+        {(vis.birthdate === 'public' || staffAuthed) && child.birthdate && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+            <div className="px-4 py-3 bg-[#F4F7F5] border-b border-[#E0EAE2]">
+              <span className="text-xs font-black text-[#5A6E62] uppercase tracking-widest">🎂 生年月日</span>
+            </div>
+            <div className="p-4 font-bold text-[#0E1A12]">
+              {new Date(child.birthdate).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
+          </div>
+        )}
 
-            {child.emergency_contacts && child.emergency_contacts.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
-                <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
-                  <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">📞 緊急連絡先</span>
-                </div>
-                {child.emergency_contacts.map((c, i) => (
-                  <div key={c.id} className={`p-4 ${i < child.emergency_contacts.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div>
-                        <div className="font-bold text-[#0E1A12]">{c.label}</div>
-                        <div className="text-xs text-[#7A8E80]">{c.relation}</div>
-                      </div>
-                      <a href={`tel:${c.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
-                        📞 {c.phone}
-                      </a>
-                    </div>
-                  </div>
-                ))}
+        {/* 持薬 */}
+        {(vis.medications === 'public' || staffAuthed) && child.medications && child.medications.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+            <div className="px-4 py-3 bg-[#FDF5E4] border-b border-[#E8C880]">
+              <span className="text-xs font-black text-[#926010] uppercase tracking-widest">💊 持薬・医療器具</span>
+            </div>
+            {child.medications.map((m, i) => (
+              <div key={m.id} className={`p-4 ${i < child.medications.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
+                <div className="font-bold text-[#0E1A12] mb-1">{m.name}</div>
+                <div className="text-sm text-[#7A8E80]">📍 {m.location}</div>
+                <div className="text-sm text-[#7A8E80]">{m.dosage}</div>
               </div>
-            )}
+            ))}
+          </div>
+        )}
 
-            {child.doctors && child.doctors.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
-                <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
-                  <span className="text-xs font-black text-[#1A50A0] uppercase tracking-widest">🏥 かかりつけ医</span>
-                </div>
-                {child.doctors.map((d, i) => (
-                  <div key={d.id} className={`p-4 ${i < child.doctors.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
-                    <div className="font-bold text-[#0E1A12] mb-1">{d.name}</div>
-                    <div className="text-sm text-[#7A8E80]">{d.address}</div>
-                    <div className="text-sm text-[#7A8E80]">{d.note}</div>
-                    {d.phone && (
-                      <a href={`tel:${d.phone.replace(/-/g, '')}`} className="inline-block mt-2 bg-[#EBF0FA] text-[#1A50A0] px-4 py-2 rounded-xl font-bold text-sm">
-                        📞 {d.phone}
-                      </a>
-                    )}
+        {/* 緊急連絡先 */}
+        {(vis.emergency_contacts === 'public' || staffAuthed) && child.emergency_contacts && child.emergency_contacts.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+            <div className="px-4 py-3 bg-[#E6F4EC] border-b border-[#B8D9C8]">
+              <span className="text-xs font-black text-[#1A6640] uppercase tracking-widest">📞 緊急連絡先</span>
+            </div>
+            {child.emergency_contacts.map((c, i) => (
+              <div key={c.id} className={`p-4 ${i < child.emergency_contacts.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <div className="font-bold text-[#0E1A12]">{c.label}</div>
+                    <div className="text-xs text-[#7A8E80]">{c.relation}</div>
                   </div>
-                ))}
+                  <a href={`tel:${c.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
+                    📞 {c.phone}
+                  </a>
+                </div>
               </div>
-            )}
-          </>
+            ))}
+          </div>
+        )}
+
+        {/* かかりつけ医 */}
+        {(vis.doctors === 'public' || staffAuthed) && child.doctors && child.doctors.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+            <div className="px-4 py-3 bg-[#EBF0FA] border-b border-[#A0BCE8]">
+              <span className="text-xs font-black text-[#1A50A0] uppercase tracking-widest">🏥 かかりつけ医</span>
+            </div>
+            {child.doctors.map((d, i) => (
+              <div key={d.id} className={`p-4 ${i < child.doctors.length - 1 ? 'border-b border-[#E0EAE2]' : ''}`}>
+                <div className="font-bold text-[#0E1A12] mb-1">{d.name}</div>
+                <div className="text-sm text-[#7A8E80]">{d.address}</div>
+                <div className="text-sm text-[#7A8E80]">{d.note}</div>
+                {d.phone && (
+                  <a href={`tel:${d.phone.replace(/-/g, '')}`} className="inline-block mt-2 bg-[#EBF0FA] text-[#1A50A0] px-4 py-2 rounded-xl font-bold text-sm">
+                    📞 {d.phone}
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {/* 保育園の連絡先（全員に表示） */}
@@ -351,16 +355,16 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* 保育士認証ボタン（未認証の場合） */}
-        {!staffAuthed && child.nursery_id && (
+        {/* スタッフ認証ボタン（未認証の場合） */}
+        {!staffAuthed && child.nursery_id && hasLockedContent && (
           <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
-            <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👩‍🏫 保育士の方へ</div>
+            <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🧑‍💼 スタッフの方へ</div>
             <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
-              緊急連絡先・持薬などの詳細情報を確認するには、保育士用NFCタグが必要です。
+              緊急連絡先・持薬などの詳細情報を確認するには、スタッフ用NFCタグが必要です。
             </div>
             <div className="bg-[#E6F4EC] rounded-xl p-4 text-center border border-[#B8D9C8]">
               <div className="text-2xl mb-2">🏷️</div>
-              <div className="font-bold text-[#1A6640] text-sm">保育士用NFCタグをスマホにかざしてください</div>
+              <div className="font-bold text-[#1A6640] text-sm">スタッフ用NFCタグをスマホにかざしてください</div>
               <div className="text-xs text-[#7A8E80] mt-1">かざすとPIN入力画面が開きます</div>
             </div>
           </div>

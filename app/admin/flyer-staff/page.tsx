@@ -7,7 +7,7 @@ const PRODUCT_A_NAME = 'スタッフ用タグ'
 const PRODUCT_A_DESC = '保育士がスマートフォンをかざすだけで保育士専用ページにアクセスできるタグです。'
 
 const PRODUCT_B_NAME = '閲覧キータグ'
-const PRODUCT_B_DESC = 'お子様の詳細な医療情報・個人情報を開くための鍵となるタグです。'
+const PRODUCT_B_DESC = 'お子様の詳細な健康情報・個人情報を開くための鍵となるタグです。'
 // ────────────────────────────────────────────
 
 export default function FlyerStaffPage() {
@@ -60,7 +60,7 @@ export default function FlyerStaffPage() {
               name: PRODUCT_B_NAME,
               desc: PRODUCT_B_DESC,
               icon: '🔑',
-              uses: ['お子様の詳細な医療情報を表示', 'アレルギー・持病・緊急連絡先', '個人情報保護のための認証キー'],
+              uses: ['お子様の詳細な健康情報を表示', 'アレルギー・持病・緊急連絡先', '個人情報保護のための認証キー'],
             },
           ].map(({ name, desc, icon, uses }) => (
             <div key={name} className="border-2 border-[#1A6640] rounded-2xl overflow-hidden">

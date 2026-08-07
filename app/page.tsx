@@ -1,8 +1,18 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setLoggedIn(!!session)
+    })
+  }, [])
+
   return (
     <main className="min-h-screen bg-[#F4F7F5] flex flex-col items-center justify-center p-8">
       <div className="max-w-md w-full">
@@ -12,7 +22,7 @@ export default function Home() {
             おまもりタグアプリ
           </h1>
           <p className="text-sm text-[#7A8E80]">
-            園児の医療情報をNFCタグで安全に管理
+            園児の健康情報をNFCタグで安全に管理
           </p>
         </div>
 
@@ -23,6 +33,14 @@ export default function Home() {
           >
             👨‍👩‍👧 保護者ログイン
           </Link>
+          {loggedIn && (
+            <Link
+              href="/inbox"
+              className="text-center py-3 rounded-2xl font-bold text-sm text-[#1A6640] border border-[#B8D9C8] bg-white"
+            >
+              📬 受信BOX
+            </Link>
+          )}
           <Link
             href="/faq"
             className="text-center py-3 rounded-2xl font-bold text-sm text-[#1A6640] border border-[#B8D9C8] bg-white"

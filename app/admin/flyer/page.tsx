@@ -53,9 +53,9 @@ export default function FlyerPage() {
 
             <div className="space-y-2 mb-5">
               {[
-                ['📱', 'スマホをかざすだけ', 'NFCタグにスマートフォンをかざせばすぐに医療情報にアクセスできます'],
+                ['📱', 'スマホをかざすだけ', 'NFCタグにスマートフォンをかざせばすぐに健康情報にアクセスできます'],
                 ['🚑', 'もしもの時に安心', 'アレルギー・持病・緊急連絡先をいつでもすぐに確認できます'],
-                ['🔒', '大切な情報は保育士のみ', '詳細な医療情報は保育士だけが閲覧できるので安心です'],
+                ['🔒', '大切な情報は保育士のみ', '詳細な健康情報は保育士だけが閲覧できるので安心です'],
               ].map(([icon, title, desc]) => (
                 <div key={title} className="flex gap-3 items-start">
                   <span className="text-lg flex-shrink-0">{icon}</span>
@@ -83,7 +83,7 @@ export default function FlyerPage() {
           <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-4 text-center">使い方</div>
           <div className="flex items-center justify-between gap-2">
             {[
-              ['📲', 'アプリに登録', 'お子様の医療情報を入力'],
+              ['📲', 'アプリに登録', 'お子様の健康情報を入力'],
               ['🏷️', 'タグをつける', '持ち物やランドセルに'],
               ['📱', 'かざして確認', 'スマホで即アクセス'],
             ].map(([icon, title, desc], i, arr) => (
