@@ -4,6 +4,7 @@ export type BloodType = 'A型' | 'B型' | 'O型' | 'AB型' | '不明'
 export type VisibilityLevel = 'public' | 'locked'
 
 export type FieldVisibility = {
+  full_name: VisibilityLevel
   birthdate: VisibilityLevel
   allergies: VisibilityLevel
   conditions: VisibilityLevel
@@ -14,8 +15,10 @@ export type FieldVisibility = {
 }
 
 // 保育園などスタッフ認証の仕組みがあるタグにおける、これまでの挙動（決め打ちの公開/鍵付き）と
-// 同じ結果になるデフォルト値。マイグレーション未適用の古いレコードのフォールバックにも使う。
+// 同じ結果になるデフォルト値。マイグレーション未適用の古いレコード・新しく追加された項目の
+// フォールバックにも使う（DBのfield_visibilityにキーが無い場合はここの値で補われる）。
 export const DEFAULT_FIELD_VISIBILITY: FieldVisibility = {
+  full_name: 'locked',
   birthdate: 'locked',
   allergies: 'public',
   conditions: 'public',
@@ -26,6 +29,7 @@ export const DEFAULT_FIELD_VISIBILITY: FieldVisibility = {
 }
 
 export const VISIBILITY_FIELD_LABELS: Record<keyof FieldVisibility, string> = {
+  full_name: '🪪 本名（フルネーム）',
   birthdate: '🎂 生年月日',
   allergies: '⚠️ アレルギー情報',
   conditions: '🫀 持病・既往歴',

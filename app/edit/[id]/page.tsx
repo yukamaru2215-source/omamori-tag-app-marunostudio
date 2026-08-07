@@ -245,7 +245,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         {tab === 'basic' && (
           <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm space-y-4">
             <div>
-              <label className="block text-xs font-black text-[#7A8E80] mb-1">呼び名</label>
+              <label className="block text-xs font-black text-[#7A8E80] mb-1">表示名</label>
               <input value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" />
             </div>
             <div>

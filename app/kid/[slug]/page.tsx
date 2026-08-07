@@ -213,6 +213,9 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
           <div>
             <div className="text-2xl font-black text-[#0E1A12]">{child.display_name}</div>
             <div className="text-xs text-[#7A8E80] mt-1">{child.kana}</div>
+            {(vis.full_name === 'public' || staffAuthed) && child.full_name && (
+              <div className="text-xs text-[#7A8E80] mt-1">🪪 {child.full_name}</div>
+            )}
             <div className="flex gap-2 mt-2 flex-wrap">
               <span className="text-xs bg-[#E6F4EC] text-[#1A6640] px-2 py-1 rounded-full font-bold">{child.age}</span>
               {child.blood_type && <span className="text-xs bg-[#EBF0FA] text-[#1A50A0] px-2 py-1 rounded-full font-bold">血液型 {child.blood_type}</span>}
