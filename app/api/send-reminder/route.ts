@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, sentCount: 0 })
     }
 
-    const nurseryName = (message.nurseries as { name: string } | null)?.name ?? '保育園'
+    const nurseryName = (message.nurseries as { name: string } | null)?.name ?? '施設'
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? `${request.nextUrl.protocol}//${request.nextUrl.host}`
 
     let sentCount = 0

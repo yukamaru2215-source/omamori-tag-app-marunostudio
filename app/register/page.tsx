@@ -30,7 +30,7 @@ export default function RegisterPage() {
       .eq('code', nurseryCode.toUpperCase())
       .single()
     if (error || !data) {
-      setNurseryError('園コードが見つかりません')
+      setNurseryError('施設コードが見つかりません')
       setNurseryName('')
       setNurseryId('')
       setGroups([])
@@ -114,10 +114,10 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* 園コード */}
+        {/* 施設コード */}
         <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
-          <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">🏫 保育園との紐づけ（任意）</div>
-          <div className="text-sm text-[#7A8E80] mb-3">園から配布された園コードを入力してください。</div>
+          <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">🏫 施設との紐づけ（任意）</div>
+          <div className="text-sm text-[#7A8E80] mb-3">施設から配布された施設コードを入力してください。</div>
           <div className="flex gap-2">
             <input value={nurseryCode} onChange={e => setNurseryCode(e.target.value)}
               className="flex-1 border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none font-mono"
@@ -130,7 +130,7 @@ export default function RegisterPage() {
               <span className="text-lg">✅</span>
               <div>
                 <div className="font-bold text-[#1A6640] text-sm">{nurseryName}</div>
-                <div className="text-xs text-[#7A8E80]">園コードが確認できました</div>
+                <div className="text-xs text-[#7A8E80]">施設コードが確認できました</div>
               </div>
             </div>
           )}

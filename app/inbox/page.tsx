@@ -81,7 +81,7 @@ export default function InboxPage() {
             title: msg.title,
             body: msg.body,
             sentAt: msg.sent_at,
-            nurseryName: msg.nurseries?.name ?? '保育園',
+            nurseryName: msg.nurseries?.name ?? '施設',
             isRead: readSet.has(msg.id),
             enabled: msg.nurseries?.enable_parent_inbox ?? false,
           }

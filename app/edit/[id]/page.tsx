@@ -84,7 +84,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   }
 
   async function handleUnlinkNursery() {
-    if (!confirm('保育園との紐づけを解除しますか？\n解除後も情報はそのまま使い続けられます。')) return
+    if (!confirm('施設との紐づけを解除しますか？\n解除後も情報はそのまま使い続けられます。')) return
     await supabase.from('child_groups').delete().eq('child_id', id)
     await supabase.from('children').update({ nursery_id: null }).eq('id', id)
     setNurseryId(null)
@@ -489,7 +489,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
               onClick={handleUnlinkNursery}
               className="w-full py-3 rounded-2xl font-bold text-sm text-[#926010] bg-[#FDF5E4] border border-[#E8C880]"
             >
-              🏫 保育園との紐づけを解除する（卒園時など）
+              🏫 施設との紐づけを解除する（卒園・退所時など）
             </button>
           )}
           <button
