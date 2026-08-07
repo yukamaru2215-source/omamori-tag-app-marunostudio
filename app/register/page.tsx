@@ -95,7 +95,7 @@ export default function RegisterPage() {
       <div className="max-w-md mx-auto p-4">
         <div className="flex items-center gap-3 py-4 mb-4">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
-          <div className="font-black text-xl text-[#0E1A12]">お子様を登録</div>
+          <div className="font-black text-xl text-[#0E1A12]">新しく登録</div>
         </div>
 
         {/* 基本情報 */}

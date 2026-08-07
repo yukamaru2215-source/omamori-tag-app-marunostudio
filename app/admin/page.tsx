@@ -177,7 +177,8 @@ export default function AdminPage() {
 
   async function handleToggleInbox(nurseryId: string, current: boolean) {
     setTogglingInbox(nurseryId)
-    await supabase.from('nurseries').update({ enable_parent_inbox: !current }).eq('id', nurseryId)
+    const { error } = await supabase.from('nurseries').update({ enable_parent_inbox: !current }).eq('id', nurseryId)
+    if (error) { alert(`エラー: ${error.message}`); setTogglingInbox(null); return }
     await loadNurseries()
     setTogglingInbox(null)
   }

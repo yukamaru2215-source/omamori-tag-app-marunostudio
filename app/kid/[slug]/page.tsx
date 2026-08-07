@@ -209,7 +209,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
 
         {/* プロフィール */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E0EAE2] mb-4 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl flex-shrink-0">👧</div>
+          <div className="w-16 h-16 rounded-2xl bg-[#E6F4EC] flex items-center justify-center text-3xl flex-shrink-0">🛡️</div>
           <div>
             <div className="text-2xl font-black text-[#0E1A12]">{child.display_name}</div>
             <div className="text-xs text-[#7A8E80] mt-1">{child.kana}</div>

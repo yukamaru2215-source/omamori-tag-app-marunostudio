@@ -498,7 +498,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             onClick={handleDelete}
             className="w-full py-3 rounded-2xl font-bold text-sm text-[#B83030] bg-[#FCEAEA] border border-[#E8AAAA]"
           >
-            🗑️ このお子様の情報を削除する
+            🗑️ この情報を削除する
           </button>
         </div>
       )}

@@ -108,19 +108,19 @@ export default function DashboardPage() {
         </div>
 
         <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">
-          登録済みのお子様
+          登録済みの情報
         </div>
 
         {children.length === 0 ? (
           <div className="bg-white rounded-2xl p-6 text-center border border-[#E0EAE2] shadow-sm mb-4">
-            <div className="text-3xl mb-2">👶</div>
+            <div className="text-3xl mb-2">🛡️</div>
             <div className="text-sm text-[#7A8E80]">まだ登録されていません</div>
           </div>
         ) : (
           children.map(child => (
             <div key={child.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm mb-3">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-[#E6F4EC] flex items-center justify-center text-2xl">👧</div>
+                <div className="w-12 h-12 rounded-xl bg-[#E6F4EC] flex items-center justify-center text-2xl">🛡️</div>
                 <div>
                   <div className="font-black text-[#0E1A12]">{child.display_name}</div>
                   <div className="text-xs text-[#7A8E80]">{child.age}</div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
         )}
 
         <Link href="/register" className="block w-full bg-[#1A6640] text-white text-center py-4 rounded-2xl font-bold text-lg shadow-lg mt-2 mb-3">
-          ＋ お子様を登録する
+          ＋ 新しく登録する
         </Link>
 
         <Link href="/faq" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm mb-3">
