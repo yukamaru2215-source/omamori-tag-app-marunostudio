@@ -42,10 +42,16 @@ export default function Home() {
             </Link>
           )}
           <Link
+            href="/guide"
+            className="text-center py-3 rounded-2xl font-bold text-sm text-[#1A6640] border border-[#B8D9C8] bg-white"
+          >
+            📘 個人利用の方向け使い方ガイド
+          </Link>
+          <Link
             href="/faq"
             className="text-center py-3 rounded-2xl font-bold text-sm text-[#1A6640] border border-[#B8D9C8] bg-white"
           >
-            ❓ よくある質問・使い方
+            ❓ よくある質問
           </Link>
           <Link
             href="/pricing"
