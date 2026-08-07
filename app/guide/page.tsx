@@ -50,9 +50,17 @@ export default function GuidePage() {
           <h1 className="text-2xl font-black text-[#0E1A12]">使い方ガイド</h1>
         </div>
 
-        <div className="bg-[#E6F4EC] rounded-xl px-4 py-3 border border-[#B8D9C8] mb-6 text-sm text-[#1A6640] leading-relaxed">
+        <div className="bg-[#E6F4EC] rounded-xl px-4 py-3 border border-[#B8D9C8] mb-3 text-sm text-[#1A6640] leading-relaxed">
           保育園などの施設に所属していなくても、お一人（ご家族）でご利用いただけます。ここでは、個人でご利用いただく場合の手順をご案内します。
         </div>
+
+        <Link href="/guide/print" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🖨️</span>
+            <span className="font-bold text-sm text-[#0E1A12]">A4で印刷する（ご家族に渡す用など）</span>
+          </div>
+          <span className="text-[#7A8E80] text-sm">›</span>
+        </Link>
 
         <div className="space-y-4">
           {STEPS.map((s) => (
