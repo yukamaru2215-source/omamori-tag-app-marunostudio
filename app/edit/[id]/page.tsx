@@ -209,7 +209,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     { id: 'medication', label: '持薬' },
     { id: 'contact', label: '連絡先' },
     { id: 'doctor', label: '医師' },
-    ...(nurseryId ? [{ id: 'visibility', label: '表示設定' }] : []),
+    { id: 'visibility', label: '表示設定' },
   ] as const
 
   const SaveBtn = ({ tabName }: { tabName: string }) => (
@@ -445,7 +445,9 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm">
               <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-1">🔓 表示項目の設定</div>
               <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
-                各項目を「公開」（タグをかざした人が誰でも見られる）か「鍵付き」（スタッフ認証をした人だけが見られる）か選べます。
+                {nurseryId
+                  ? '各項目を「公開」（タグをかざした人が誰でも見られる）か「鍵付き」（スタッフ認証をした人だけが見られる）か選べます。'
+                  : '各項目を「公開」（タグをかざした人が誰でも見られる）か「非表示」（誰にも表示せず、この編集画面でのみ確認できる）か選べます。'}
               </div>
               <div className="space-y-2">
                 {(Object.keys(VISIBILITY_FIELD_LABELS) as (keyof FieldVisibility)[]).map((key) => {
@@ -458,7 +460,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                         onClick={() => toggleVisibility(key)}
                         className={`flex-shrink-0 px-3 py-2 rounded-xl font-bold text-xs ${isPublic ? 'bg-[#E6F4EC] text-[#1A6640] border border-[#B8D9C8]' : 'bg-[#FDF5E4] text-[#926010] border border-[#E8C880]'}`}
                       >
-                        {isPublic ? '🔓 公開' : '🔒 鍵付き'}
+                        {isPublic ? '🔓 公開' : nurseryId ? '🔒 鍵付き' : '🙈 非表示'}
                       </button>
                     </div>
                   )
