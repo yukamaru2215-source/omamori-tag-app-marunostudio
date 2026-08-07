@@ -125,7 +125,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         onClick={() => toggleVisibility(field)}
         className={`flex-shrink-0 px-2.5 py-1 rounded-full font-bold text-xs ${isPublic ? 'bg-[#E6F4EC] text-[#1A6640] border border-[#B8D9C8]' : 'bg-[#FDF5E4] text-[#926010] border border-[#E8C880]'}`}
       >
-        {isPublic ? '🔓 公開' : nurseryId ? '🔒 鍵付き' : '🙈 非表示'}
+        {isPublic ? '🔓 公開' : nurseryId ? '🔒 鍵付き' : '🔒 非表示'}
       </button>
     )
   }
@@ -244,7 +244,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         </div>
 
         <div className="text-xs text-[#7A8E80] mb-3 leading-relaxed">
-          各項目の🔓/{nurseryId ? '🔒' : '🙈'}ボタンで、その項目を{nurseryId ? 'スタッフ認証をした人だけに見せる（鍵付き）' : '誰にも表示しない（非表示）'}か選べます。押すとすぐに反映されます。
+          各項目の🔓/🔒ボタンで、その項目を{nurseryId ? 'スタッフ認証をした人だけに見せる（鍵付き）' : '誰にも表示しない（非表示）'}か選べます。押すとすぐに反映されます。
         </div>
 
         <div className="bg-[#FDF5E4] rounded-xl px-4 py-3 border border-[#E8C880] mb-4 text-xs text-[#926010] leading-relaxed">
