@@ -11,7 +11,7 @@ export default function PrivacyPage() {
 
         <div className="bg-white rounded-2xl p-6 border border-[#E0EAE2] shadow-sm text-sm text-[#3A4A3E] leading-relaxed space-y-6">
           <p>
-            このプライバシーポリシーは、<a href="https://omamori-tag-app-marunostudio.vercel.app/" className="text-[#1A6640] underline break-all">https://omamori-tag-app-marunostudio.vercel.app/</a>（以下、「本サイト」といいます。）における、お客様の個人情報の取扱いについて定めるものです。本サイトおよびWebアプリ「おまもりタグ」を運営するmarunostudio（以下、「当方」といいます。）は、お客様の個人情報を適切に保護し、適正に取り扱うことをお約束いたします。
+            このプライバシーポリシーは、<a href="https://tag.marunostudio.com/" className="text-[#1A6640] underline break-all">https://tag.marunostudio.com/</a>（以下、「本サイト」といいます。）における、お客様の個人情報の取扱いについて定めるものです。本サイトおよびWebアプリ「おまもりタグ」を運営するmarunostudio（以下、「当方」といいます。）は、お客様の個人情報を適切に保護し、適正に取り扱うことをお約束いたします。
           </p>
 
           <div>
