@@ -12,6 +12,7 @@ export type FieldVisibility = {
   medications: VisibilityLevel
   emergency_contacts: VisibilityLevel
   doctors: VisibilityLevel
+  note: VisibilityLevel
 }
 
 // 保育園などスタッフ認証の仕組みがあるタグにおける、これまでの挙動（決め打ちの公開/鍵付き）と
@@ -26,6 +27,7 @@ export const DEFAULT_FIELD_VISIBILITY: FieldVisibility = {
   medications: 'locked',
   emergency_contacts: 'locked',
   doctors: 'locked',
+  note: 'locked',
 }
 
 export const VISIBILITY_FIELD_LABELS: Record<keyof FieldVisibility, string> = {
@@ -37,6 +39,7 @@ export const VISIBILITY_FIELD_LABELS: Record<keyof FieldVisibility, string> = {
   medications: '💊 持薬・医療器具',
   emergency_contacts: '📞 緊急連絡先',
   doctors: '🏥 かかりつけ医',
+  note: '📝 備考',
 }
 
 export type Child = {
@@ -51,6 +54,7 @@ export type Child = {
   blood_type: BloodType | null
   has_epipen: boolean
   epipen_location: string | null
+  note: string | null
   slug: string
   is_lost: boolean
   field_visibility: FieldVisibility

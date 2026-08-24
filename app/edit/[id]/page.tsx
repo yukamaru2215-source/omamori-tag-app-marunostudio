@@ -17,6 +17,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     display_name: '', full_name: '', kana: '', age: '',
     birthdate: '',
     blood_type: '不明', has_epipen: false, epipen_location: '',
+    note: '',
     is_lost: false,
   })
   const [nurseryId, setNurseryId] = useState<string | null>(null)
@@ -52,6 +53,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         blood_type: data.blood_type ?? '不明',
         has_epipen: data.has_epipen ?? false,
         epipen_location: data.epipen_location ?? '',
+        note: data.note ?? '',
         is_lost: data.is_lost ?? false,
       })
       setNurseryId(data.nursery_id ?? null)
@@ -303,6 +305,19 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                 <input value={form.epipen_location} onChange={e => setForm({ ...form, epipen_location: e.target.value })} className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none" placeholder="例：バッグ内・赤いポーチ" />
               </div>
             )}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-black text-[#7A8E80]">備考</label>
+                {visibilityBadge('note')}
+              </div>
+              <textarea
+                value={form.note}
+                onChange={e => setForm({ ...form, note: e.target.value })}
+                className="w-full border border-[#E0EAE2] rounded-xl px-4 py-3 text-sm outline-none resize-none"
+                rows={3}
+                placeholder="例：出生体重2800g・出生身長48cm・在胎38週　など、自由に記載できます"
+              />
+            </div>
 
             {/* 紛失モード */}
             <div className={`rounded-xl p-4 border ${form.is_lost ? 'bg-[#FCEAEA] border-[#E8AAAA]' : 'bg-[#F4F7F5] border-[#E0EAE2]'}`}>

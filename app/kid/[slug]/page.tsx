@@ -343,6 +343,16 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
+        {/* 備考 */}
+        {(vis.note === 'public' || staffAuthed) && child.note && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
+            <div className="px-4 py-3 bg-[#F4F7F5] border-b border-[#E0EAE2]">
+              <span className="text-xs font-black text-[#5A6E62] uppercase tracking-widest">📝 備考</span>
+            </div>
+            <div className="p-4 text-sm text-[#0E1A12] whitespace-pre-wrap">{child.note}</div>
+          </div>
+        )}
+
         {/* 施設の連絡先（全員に表示） */}
         {nurseryPhone && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E0EAE2] mb-4 overflow-hidden">
