@@ -232,6 +232,7 @@ export default function AdminPage() {
             <div className="font-black text-xl text-[#0E1A12]">園の管理</div>
           </div>
           <div className="flex gap-2">
+<button onClick={() => window.open('/admin/card', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">📇 封入カード</button>
 <button onClick={() => window.open('/admin/proposal', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">📋 提案書</button>
             <button onClick={() => window.open('/admin/flyer-staff', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">🧑‍💼 スタッフ向け</button>
             <button onClick={() => window.open('/admin/flyer', '_blank')} className="text-sm text-[#1A6640] border border-[#B2D8C0] px-3 py-2 rounded-xl bg-[#E6F4EC] font-bold">🏷️ 保護者向け</button>
