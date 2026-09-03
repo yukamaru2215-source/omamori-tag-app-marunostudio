@@ -94,10 +94,14 @@ function RegisterContent() {
 
     // NFCタグ経由の登録なら、そのタグをこの子と紐づける
     if (tagId) {
-      await supabase
+      const { data: linkedTag, error: tagError } = await supabase
         .from('tags')
         .update({ child_id: child.id, activated_at: new Date().toISOString() })
         .eq('id', tagId)
+        .select('id')
+      if (tagError || !linkedTag || linkedTag.length === 0) {
+        alert(`お子様の登録は完了しましたが、タグとの紐づけに失敗しました。\n${tagError ? tagError.message : 'タグが見つからないか、既に別の登録で使用されています。'}`)
+      }
     }
 
     router.push('/dashboard')
