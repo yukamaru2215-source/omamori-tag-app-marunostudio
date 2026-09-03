@@ -114,6 +114,13 @@ export type ChildFull = Child & {
   doctors: Doctor[]
 }
 
+export type Tag = {
+  id: string
+  child_id: string | null
+  created_at: string
+  activated_at: string | null
+}
+
 export type Group = {
   id: string
   nursery_id: string

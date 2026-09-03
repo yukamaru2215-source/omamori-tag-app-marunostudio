@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 type Group = { id: string; name: string }
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tagId = searchParams.get('tagId')
   const [loading, setLoading] = useState(false)
   const [nurseryCode, setNurseryCode] = useState('')
   const [nurseryName, setNurseryName] = useState('')
@@ -21,6 +23,11 @@ export default function RegisterPage() {
   // グループ
   const [groups, setGroups] = useState<Group[]>([])
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+
+  // ログイン画面を経由してもタグ紐づけ先を忘れないよう保持しておく
+  useEffect(() => {
+    if (tagId) localStorage.setItem('pending_tag_id', tagId)
+  }, [tagId])
 
   async function checkNurseryCode() {
     if (!nurseryCode) return
@@ -85,6 +92,15 @@ export default function RegisterPage() {
       await supabase.from('child_groups').insert(
         selectedGroupIds.map((groupId) => ({ child_id: child.id, group_id: groupId }))
       )
+    }
+
+    // NFCタグ経由の登録なら、そのタグをこの子と紐づける
+    if (tagId) {
+      await supabase
+        .from('tags')
+        .update({ child_id: child.id, activated_at: new Date().toISOString() })
+        .eq('id', tagId)
+      localStorage.removeItem('pending_tag_id')
     }
 
     router.push('/dashboard')
@@ -198,5 +214,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
+        <div className="text-[#7A8E80]">読み込み中...</div>
+      </main>
+    }>
+      <RegisterContent />
+    </Suspense>
   )
 }

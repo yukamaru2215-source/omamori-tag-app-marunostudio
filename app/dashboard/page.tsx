@@ -37,6 +37,15 @@ export default function DashboardPage() {
       }
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
+
+      // NFCタグ経由でログインした場合は、登録画面に戻してタグを紐づける
+      const pendingTagId = localStorage.getItem('pending_tag_id')
+      if (pendingTagId) {
+        localStorage.removeItem('pending_tag_id')
+        router.replace(`/register?tagId=${encodeURIComponent(pendingTagId)}`)
+        return
+      }
+
       setUserEmail(session.user.email ?? '')
       setUserId(session.user.id)
       const { data } = await supabase
