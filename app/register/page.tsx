@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -23,11 +23,6 @@ function RegisterContent() {
   // グループ
   const [groups, setGroups] = useState<Group[]>([])
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
-
-  // ログイン画面を経由してもタグ紐づけ先を忘れないよう保持しておく
-  useEffect(() => {
-    if (tagId) localStorage.setItem('pending_tag_id', tagId)
-  }, [tagId])
 
   async function checkNurseryCode() {
     if (!nurseryCode) return
@@ -103,7 +98,6 @@ function RegisterContent() {
         .from('tags')
         .update({ child_id: child.id, activated_at: new Date().toISOString() })
         .eq('id', tagId)
-      localStorage.removeItem('pending_tag_id')
     }
 
     router.push('/dashboard')

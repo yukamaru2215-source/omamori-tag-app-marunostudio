@@ -41,13 +41,9 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
 
-      // NFCタグ経由でログインした場合は、登録画面に戻してタグを紐づける
-      // URLの?tagIdを優先（確認メールを別ブラウザ/端末で開いた場合でも引き継げる）。
-      // 無ければ同じブラウザ内での引き継ぎ用にlocalStorageを見る。
-      const pendingTagId = tagIdFromUrl ?? localStorage.getItem('pending_tag_id')
-      if (pendingTagId) {
-        localStorage.removeItem('pending_tag_id')
-        router.replace(`/register?tagId=${encodeURIComponent(pendingTagId)}`)
+      // NFCタグ経由でログインした場合（?tagId付き）は、登録画面に戻してタグを紐づける
+      if (tagIdFromUrl) {
+        router.replace(`/register?tagId=${encodeURIComponent(tagIdFromUrl)}`)
         return
       }
 
