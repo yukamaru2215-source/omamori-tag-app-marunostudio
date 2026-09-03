@@ -67,7 +67,10 @@ function RegisterContent() {
     if (!agreed) { alert('利用規約に同意してください'); return }
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { router.push('/login'); return }
+    if (!session) {
+      router.push(tagId ? `/login?tagId=${encodeURIComponent(tagId)}` : '/login')
+      return
+    }
 
     const { data: child, error } = await supabase
       .from('children')
@@ -113,6 +116,15 @@ function RegisterContent() {
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
           <div className="font-black text-xl text-[#0E1A12]">新しく登録</div>
         </div>
+
+        {tagId && (
+          <div className="bg-[#E6F4EC] border border-[#B8D9C8] rounded-2xl px-4 py-3 mb-4 flex items-start gap-2">
+            <span className="text-lg flex-shrink-0">🏷️</span>
+            <div className="text-sm text-[#1A6640] leading-relaxed">
+              おまもりタグの初期設定です。下の情報を入力して「登録する」を押すと、このタグで使えるようになります。
+            </div>
+          </div>
+        )}
 
         {/* 基本情報 */}
         <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm space-y-4 mb-4">

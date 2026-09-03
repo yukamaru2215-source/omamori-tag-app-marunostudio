@@ -31,15 +31,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
+      // OAuthのリダイレクトでhashが付く前に、?tagIdを保持しておく（次のreplaceStateで消える前に読む）
+      const tagIdFromUrl = new URLSearchParams(window.location.search).get('tagId')
+
       if (window.location.hash) {
         await supabase.auth.getSession()
-        window.history.replaceState(null, '', window.location.pathname)
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
       }
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
 
       // NFCタグ経由でログインした場合は、登録画面に戻してタグを紐づける
-      const pendingTagId = localStorage.getItem('pending_tag_id')
+      // URLの?tagIdを優先（確認メールを別ブラウザ/端末で開いた場合でも引き継げる）。
+      // 無ければ同じブラウザ内での引き継ぎ用にlocalStorageを見る。
+      const pendingTagId = tagIdFromUrl ?? localStorage.getItem('pending_tag_id')
       if (pendingTagId) {
         localStorage.removeItem('pending_tag_id')
         router.replace(`/register?tagId=${encodeURIComponent(pendingTagId)}`)

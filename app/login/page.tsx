@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 type Mode = 'select' | 'signin' | 'signup' | 'reset'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tagId = searchParams.get('tagId')
   const [mode, setMode] = useState<Mode>('select')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -15,10 +17,15 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [done, setDone] = useState('')
 
+  // NFCタグ経由のログインでは、確認メールが別ブラウザ/端末で開かれてもタグIDを見失わないようURLで引き継ぐ
+  const dashboardUrl = tagId
+    ? `${window.location.origin}/dashboard?tagId=${encodeURIComponent(tagId)}`
+    : `${window.location.origin}/dashboard`
+
   async function handleGoogleLogin() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: dashboardUrl },
     })
   }
 
@@ -29,7 +36,7 @@ export default function LoginPage() {
     if (error) {
       setError('メールアドレスまたはパスワードが正しくありません')
     } else {
-      router.push('/dashboard')
+      router.push(tagId ? `/dashboard?tagId=${encodeURIComponent(tagId)}` : '/dashboard')
     }
     setLoading(false)
   }
@@ -41,7 +48,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { emailRedirectTo: dashboardUrl },
     })
     if (error) {
       setError(error.message.includes('already registered')
@@ -208,5 +215,17 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
+        <div className="text-[#7A8E80]">読み込み中...</div>
+      </main>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
