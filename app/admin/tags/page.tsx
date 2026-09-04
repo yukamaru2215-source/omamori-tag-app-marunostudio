@@ -123,7 +123,13 @@ export default function AdminTagsPage() {
           {newlyGeneratedIds && (
             <div className="mt-3 bg-[#E6F4EC] rounded-xl px-4 py-3">
               <div className="text-xs font-bold text-[#1A6640] mb-1">✅ {newlyGeneratedIds.length}件発行しました</div>
-              <div className="text-xs text-[#4A6E55]">下の一覧の先頭に追加されています。1件ずつ「QR」でURLを確認しながら書き込んでください。</div>
+              <div className="text-xs text-[#4A6E55] mb-3">下の一覧の先頭に追加されています。1件ずつ「QR」でURLを確認しながら書き込んでください。</div>
+              <button
+                onClick={() => window.open(`/admin/card?ids=${newlyGeneratedIds.join(',')}`, '_blank')}
+                className="w-full bg-[#1A6640] text-white py-2 rounded-xl font-bold text-xs"
+              >
+                📇 このタグに合わせた封入カードを印刷
+              </button>
             </div>
           )}
         </div>
