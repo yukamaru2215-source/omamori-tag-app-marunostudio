@@ -17,6 +17,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
   const [staffAuthed, setStaffAuthed] = useState(false)
   const [isLost, setIsLost] = useState(false)
   const [notifyMessage, setNotifyMessage] = useState('')
+  const [parentId, setParentId] = useState<string | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
 
   // ページ読み込み時に自動でリダイレクト先を保存＆認証チェック
   useEffect(() => {
@@ -65,6 +67,14 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
       window.removeEventListener('touchstart', reset)
       window.removeEventListener('mousemove', reset)
     }
+  }, [])
+
+  // 保護者としてログイン済みかどうか（自分の子のタグなら編集導線を出す）
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setParentId(session?.user.id ?? null)
+      setAuthChecked(true)
+    })
   }, [])
 
   useEffect(() => {
@@ -132,6 +142,41 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
     </main>
   )
 
+  const isOwner = parentId !== null && child.parent_id === parentId
+  const subBtn = 'block w-full bg-white border border-[#E0EAE2] text-[#1A6640] py-3 rounded-xl font-bold text-sm text-center'
+
+  // 保護者向け導線：本人なら編集へ、未ログインならログインへ
+  const parentSection = !authChecked ? null : (
+    <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
+      <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">👨‍👩‍👧 保護者の方へ</div>
+      {isOwner ? (
+        <>
+          <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
+            このタグはあなたのお子さまのものです。{isLost ? '無効化の解除や情報の修正' : '登録内容の修正'}はこちらから行えます。
+          </div>
+          <Link href={`/edit/${child.id}`} className="block w-full bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm text-center mb-2">
+            ✏️ この子の情報を編集する
+          </Link>
+          <Link href="/dashboard" className={subBtn}>🏠 マイページへ</Link>
+        </>
+      ) : parentId ? (
+        <>
+          <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
+            ログイン中のアカウントでは、このタグの情報は編集できません。
+          </div>
+          <Link href="/dashboard" className={subBtn}>🏠 マイページへ</Link>
+        </>
+      ) : (
+        <>
+          <div className="text-sm text-[#7A8E80] mb-4 leading-relaxed">
+            このタグの持ち主の方は、ログインすると登録内容の確認・修正ができます。
+          </div>
+          <Link href="/login" className={subBtn}>🔑 保護者ログイン</Link>
+        </>
+      )}
+    </div>
+  )
+
   // 紛失モード：情報は非表示、発見者向けUI を表示
   if (isLost) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center p-6">
@@ -179,6 +224,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             </div>
           )}
         </div>
+
+        {parentSection}
       </div>
     </main>
   )
@@ -417,6 +464,8 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             </div>
           )}
         </div>
+
+        {parentSection}
 
         <div className="bg-[#F4F7F5] rounded-xl p-3 border border-[#E0EAE2] mb-4 text-xs text-[#7A8E80] leading-relaxed space-y-1">
           <p className="font-bold text-[#5A6E62]">ご利用にあたって</p>
