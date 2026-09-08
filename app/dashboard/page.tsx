@@ -34,12 +34,27 @@ export default function DashboardPage() {
       // OAuthのリダイレクトでhashが付く前に、?tagIdを保持しておく（次のreplaceStateで消える前に読む）
       const tagIdFromUrl = new URLSearchParams(window.location.search).get('tagId')
 
-      if (window.location.hash) {
-        await supabase.auth.getSession()
+      let session = (await supabase.auth.getSession()).data.session
+
+      // OAuthリダイレクト直後はhashにトークンが入っているが、
+      // getSession()を1回呼ぶだけだとまだ処理中で間に合わないことがある。
+      // その場合はonAuthStateChangeで認証状態の確定を待つ（最大5秒）。
+      if (!session && window.location.hash) {
+        session = await new Promise((resolve) => {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+            subscription.unsubscribe()
+            resolve(s)
+          })
+          setTimeout(() => { subscription.unsubscribe(); resolve(null) }, 5000)
+        })
         window.history.replaceState(null, '', window.location.pathname + window.location.search)
       }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/login'); return }
+
+      if (!session) {
+        // タグ経由の場合はtagIdを引き継いだままログイン画面へ戻す（引き継がないとタグ紐づけが行われなくなる）
+        router.push(tagIdFromUrl ? `/login?tagId=${encodeURIComponent(tagIdFromUrl)}` : '/login')
+        return
+      }
 
       // NFCタグ経由でログインした場合（?tagId付き）は、登録画面に戻してタグを紐づける
       if (tagIdFromUrl) {
