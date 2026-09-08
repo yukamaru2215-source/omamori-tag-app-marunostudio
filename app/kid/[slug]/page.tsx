@@ -195,7 +195,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             <div className="text-center">
               <div className="text-4xl mb-2">✅</div>
               <div className="font-black text-[#1A6640]">保護者へ通知しました</div>
-              <div className="text-sm text-[#7A8E80] mt-1">まもなく連絡が来ます</div>
+              <div className="text-sm text-[#7A8E80] mt-1">ご協力ありがとうございました</div>
             </div>
           ) : notifyState === 'confirm' ? (
             <div>
@@ -436,7 +436,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
             <div className="text-center">
               <div className="text-4xl mb-2">✅</div>
               <div className="font-black text-[#1A6640]">保護者へ通知しました</div>
-              <div className="text-sm text-[#7A8E80] mt-1">まもなく連絡が来ます</div>
+              <div className="text-sm text-[#7A8E80] mt-1">ご協力ありがとうございました</div>
             </div>
           ) : notifyState === 'confirm' ? (
             <div>
