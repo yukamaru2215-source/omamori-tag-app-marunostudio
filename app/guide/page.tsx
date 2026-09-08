@@ -54,6 +54,14 @@ export default function GuidePage() {
           保育園などの施設に所属していなくても、お一人（ご家族）でご利用いただけます。ここでは、個人でご利用いただく場合の手順をご案内します。
         </div>
 
+        <Link href="/guide/visual" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📱</span>
+            <span className="font-bold text-sm text-[#0E1A12]">画面つきでもっと詳しく見る</span>
+          </div>
+          <span className="text-[#7A8E80] text-sm">›</span>
+        </Link>
+
         <Link href="/guide/print" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm mb-6">
           <div className="flex items-center gap-2">
             <span className="text-lg">🖨️</span>
