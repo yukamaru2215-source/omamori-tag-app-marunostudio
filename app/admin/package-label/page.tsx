@@ -11,21 +11,25 @@ const ROWS_PER_SHEET = 11 // 50mm×4=200mm, 25mm×11=275mm でA4 1枚に収ま�
 function Label({ qrUrl, hpQrUrl }: { qrUrl: string; hpQrUrl: string }) {
   return (
     <div
-      className="border border-dashed border-gray-300 bg-white flex items-center gap-[1mm] overflow-hidden"
+      className="border border-dashed border-gray-300 bg-white flex flex-col overflow-hidden"
       style={{ width: `${LABEL_W_MM}mm`, height: `${LABEL_H_MM}mm`, padding: '1.5mm', breakInside: 'avoid' }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={qrUrl} alt="QR" className="flex-shrink-0" style={{ width: '16mm', height: '16mm' }} />
-      <div className="min-w-0 leading-tight flex-1">
-        <div className="text-[4.5px] font-bold text-[#4A6E55]">🏷️ おまもりタグ</div>
-        <div className="text-[7px] font-black text-[#1A6640] mt-[0.3mm]">使い方ガイド</div>
-        <div className="text-[4.5px] text-gray-500 mt-[0.3mm]">QRを読み取ってね</div>
-      </div>
-      <div className="flex-shrink-0 flex flex-col items-center" style={{ width: '9mm' }}>
+      <div className="flex items-center gap-[1mm] flex-1">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={hpQrUrl} alt="公式ブログQR" style={{ width: '9mm', height: '9mm' }} />
-        <div className="text-[4px] text-gray-400 mt-[0.2mm]">公式HP</div>
+        <img src={qrUrl} alt="QR" className="flex-shrink-0" style={{ width: '16mm', height: '16mm' }} />
+        <div className="min-w-0 leading-tight flex-1">
+          <div className="text-[4.5px] font-bold text-[#4A6E55]">🏷️ おまもりタグ</div>
+          <div className="text-[7px] font-black text-[#1A6640] mt-[0.3mm]">使い方ガイド</div>
+          <div className="text-[4.5px] text-gray-500 mt-[0.3mm]">QRを読み取ってね</div>
+        </div>
+        <div className="flex-shrink-0 flex flex-col items-center" style={{ width: '9mm' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={hpQrUrl} alt="公式ブログQR" style={{ width: '9mm', height: '9mm' }} />
+          <div className="text-[4px] text-gray-400 mt-[0.2mm]">公式HP</div>
+        </div>
       </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/marunostudio-logo.jpg" alt="marunostudio" className="flex-shrink-0" style={{ height: '2.8mm', objectFit: 'contain', objectPosition: 'left', marginTop: '0.5mm' }} />
     </div>
   )
 }
