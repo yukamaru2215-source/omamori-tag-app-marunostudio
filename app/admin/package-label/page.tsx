@@ -28,8 +28,10 @@ function Label({ qrUrl, hpQrUrl }: { qrUrl: string; hpQrUrl: string }) {
           <div className="text-[4px] text-gray-400 mt-[0.2mm]">公式HP</div>
         </div>
       </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/marunostudio-logo.jpg" alt="marunostudio" className="flex-shrink-0" style={{ height: '2.8mm', objectFit: 'contain', objectPosition: 'left', marginTop: '0.5mm' }} />
+      <div className="flex justify-end flex-shrink-0" style={{ marginTop: '0.5mm' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/marunostudio-logo.jpg" alt="marunostudio" style={{ height: '2.8mm', objectFit: 'contain' }} />
+      </div>
     </div>
   )
 }
