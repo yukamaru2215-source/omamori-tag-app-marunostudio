@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -11,6 +11,10 @@ function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tagId = searchParams.get('tagId')
+  const [checkingTag, setCheckingTag] = useState(true)
+  const [alreadyLinked, setAlreadyLinked] = useState(false)
+  const [existingChildren, setExistingChildren] = useState<{ id: string; display_name: string; age: string }[] | null>(null)
+  const [linkingChildId, setLinkingChildId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [nurseryCode, setNurseryCode] = useState('')
   const [nurseryName, setNurseryName] = useState('')
@@ -23,6 +27,54 @@ function RegisterContent() {
   // グループ
   const [groups, setGroups] = useState<Group[]>([])
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+
+  // 入力を始める前に、タグの状態とログイン状態を確認する。
+  // 先に入力させてからログインを求めると、ログイン後にもう一度同じ内容を入力させることになるため、
+  // 未ログインならフォームを見せる前にログイン画面へ送る。
+  useEffect(() => {
+    let cancelled = false
+    async function check() {
+      if (tagId) {
+        const { data: tag } = await supabase
+          .from('tags')
+          .select('child_id')
+          .eq('id', tagId)
+          .single()
+        if (cancelled) return
+        if (tag?.child_id) {
+          setAlreadyLinked(true)
+          setCheckingTag(false)
+          return
+        }
+      }
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (cancelled) return
+      if (!session) {
+        router.replace(tagId ? `/login?tagId=${encodeURIComponent(tagId)}` : '/login')
+        return
+      }
+
+      // タグ経由かつ既にお子様を登録済みなら、新規作成ではなく既存のお子様への紐づけを選べるようにする
+      // （NFCタグ経由で「新しく登録」しか出せず、既に作った情報にたどり着けなくなる不具合を防ぐ）
+      if (tagId) {
+        const { data: kids } = await supabase
+          .from('children')
+          .select('id, display_name, age')
+          .eq('parent_id', session.user.id)
+        if (cancelled) return
+        if (kids && kids.length > 0) {
+          setExistingChildren(kids)
+          setCheckingTag(false)
+          return
+        }
+      }
+
+      setCheckingTag(false)
+    }
+    check()
+    return () => { cancelled = true }
+  }, [tagId, router])
 
   async function checkNurseryCode() {
     if (!nurseryCode) return
@@ -58,11 +110,29 @@ function RegisterContent() {
     )
   }
 
+  async function handleLinkExisting(childId: string) {
+    if (!tagId) return
+    setLinkingChildId(childId)
+    const { data, error } = await supabase
+      .from('tags')
+      .update({ child_id: childId, activated_at: new Date().toISOString() })
+      .eq('id', tagId)
+      .is('child_id', null)
+      .select('id')
+    setLinkingChildId(null)
+    if (error || !data || data.length === 0) {
+      alert('タグの紐づけに失敗しました。既に別の登録で使用されている可能性があります。')
+      return
+    }
+    router.push('/dashboard')
+  }
+
   async function handleSubmit() {
     if (!agreed) { alert('利用規約に同意してください'); return }
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
+      // 通常はこの画面に来る時点でログイン済みのはずだが、セッション切れなどへの保険
       router.push(tagId ? `/login?tagId=${encodeURIComponent(tagId)}` : '/login')
       return
     }
@@ -92,12 +162,13 @@ function RegisterContent() {
       )
     }
 
-    // NFCタグ経由の登録なら、そのタグをこの子と紐づける
+    // NFCタグ経由の登録なら、そのタグをこの子と紐づける（未紐づけの場合のみ。二重登録防止）
     if (tagId) {
       const { data: linkedTag, error: tagError } = await supabase
         .from('tags')
         .update({ child_id: child.id, activated_at: new Date().toISOString() })
         .eq('id', tagId)
+        .is('child_id', null)
         .select('id')
       if (tagError || !linkedTag || linkedTag.length === 0) {
         alert(`お子様の登録は完了しましたが、タグとの紐づけに失敗しました。\n${tagError ? tagError.message : 'タグが見つからないか、既に別の登録で使用されています。'}`)
@@ -106,6 +177,65 @@ function RegisterContent() {
 
     router.push('/dashboard')
   }
+
+  if (checkingTag) return (
+    <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
+      <div className="text-[#7A8E80]">読み込み中...</div>
+    </main>
+  )
+
+  if (alreadyLinked) return (
+    <main className="min-h-screen bg-[#F4F7F5] flex flex-col items-center justify-center p-8 text-center">
+      <div className="text-5xl mb-4">✅</div>
+      <div className="font-black text-xl text-[#0E1A12] mb-2">このタグは登録済みです</div>
+      <div className="text-sm text-[#7A8E80] mb-6">このおまもりタグは既に設定が完了しています。二重登録を防ぐため、新しい登録はできません。</div>
+      <Link href="/dashboard" className="bg-[#1A6640] text-white px-6 py-3 rounded-2xl font-bold text-sm">ダッシュボードへ</Link>
+    </main>
+  )
+
+  if (existingChildren) return (
+    <main className="min-h-screen bg-[#F4F7F5]">
+      <div className="max-w-md mx-auto p-4 pb-16">
+        <div className="flex items-center gap-3 py-4 mb-4">
+          <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
+          <div className="font-black text-xl text-[#0E1A12]">タグの登録</div>
+        </div>
+
+        <div className="bg-[#E6F4EC] border border-[#B8D9C8] rounded-2xl px-4 py-3 mb-4 flex items-start gap-2">
+          <span className="text-lg flex-shrink-0">🏷️</span>
+          <div className="text-sm text-[#1A6640] leading-relaxed">
+            このタグをどのお子様に紐づけますか？すでに登録済みのお子様に紐づけるか、新しくお子様を登録できます。
+          </div>
+        </div>
+
+        <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-3">登録済みのお子様</div>
+
+        {existingChildren.map((kid) => (
+          <div key={kid.id} className="bg-white rounded-2xl p-4 border border-[#E0EAE2] shadow-sm mb-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="font-black text-[#0E1A12]">{kid.display_name}</div>
+              <div className="text-xs text-[#7A8E80]">{kid.age}</div>
+            </div>
+            <button
+              onClick={() => handleLinkExisting(kid.id)}
+              disabled={linkingChildId !== null}
+              className="bg-[#1A6640] text-white px-4 py-2 rounded-xl font-bold text-sm disabled:opacity-50 flex-shrink-0"
+            >
+              {linkingChildId === kid.id ? '処理中...' : 'このタグを紐づける'}
+            </button>
+          </div>
+        ))}
+
+        <button
+          onClick={() => setExistingChildren(null)}
+          disabled={linkingChildId !== null}
+          className="w-full mt-2 bg-white border border-[#E0EAE2] text-[#1A6640] py-3 rounded-2xl font-bold text-sm disabled:opacity-50"
+        >
+          ＋ 新しくお子様を登録する
+        </button>
+      </div>
+    </main>
+  )
 
   return (
     <main className="min-h-screen bg-[#F4F7F5] pb-32">

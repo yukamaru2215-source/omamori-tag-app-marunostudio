@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Child } from '@/lib/types'
+import { useTagScanner } from '@/lib/useTagScanner'
 
 export default function NFCPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -14,6 +15,7 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
   const [baseUrl, setBaseUrl] = useState('')
   const [reissuing, setReissuing] = useState(false)
   const [reissued, setReissued] = useState(false)
+  const [linking, setLinking] = useState(false)
 
   useEffect(() => {
     setBaseUrl(window.location.origin)
@@ -65,6 +67,31 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
     setTimeout(() => setReissued(false), 3000)
   }
 
+  async function linkTag(tagId: string) {
+    setLinking(true)
+    const { data, error } = await supabase
+      .from('tags')
+      .update({ child_id: id, activated_at: new Date().toISOString() })
+      .eq('id', tagId)
+      .is('child_id', null)
+      .select('id')
+    setLinking(false)
+    if (!error && data && data.length > 0) {
+      alert('タグを紐づけました！')
+      return
+    }
+    const { data: existing } = await supabase.from('tags').select('child_id').eq('id', tagId).single()
+    if (existing?.child_id === id) {
+      alert('このタグはすでにこのお子様に紐づいています')
+    } else if (existing) {
+      alert('このタグは既に別のお子様に登録されています')
+    } else {
+      alert('おまもりタグのURLではないようです。もう一度お試しください。')
+    }
+  }
+
+  const { mode: linkMode, nfcSupported, videoRef, startNfc: startNfcScan, startQr: startQrScan, stop: stopScan } = useTagScanner(linkTag)
+
   if (loading) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
       <div className="text-[#7A8E80]">読み込み中...</div>
@@ -81,6 +108,53 @@ export default function NFCPage({ params }: { params: Promise<{ id: string }> })
         <div className="flex items-center gap-3 py-4 mb-4">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-xl border border-[#E0EAE2] bg-white flex items-center justify-center text-[#7A8E80]">←</button>
           <div className="font-black text-xl text-[#0E1A12]">NFCタグ / QRコード</div>
+        </div>
+
+        {/* 書き込み済みのタグを追加 */}
+        <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">
+          <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🔗 お手持ちのおまもりタグを追加</div>
+          <div className="text-sm text-[#7A8E80] mb-3">
+            すでに購入した「おまもりタグ」（未登録のもの）を、{child.display_name} に紐づけます。NFCタグにタッチするか、封入カードのQRコードを読み取ってください。
+          </div>
+
+          {linkMode === 'idle' && (
+            <div className="flex gap-2">
+              <button
+                onClick={startNfcScan}
+                disabled={!nfcSupported}
+                className="flex-1 bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40"
+              >
+                📱 NFCでタッチ
+              </button>
+              <button
+                onClick={startQrScan}
+                className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm"
+              >
+                📷 QRを読み取る
+              </button>
+            </div>
+          )}
+          {!nfcSupported && linkMode === 'idle' && (
+            <div className="text-xs text-[#7A8E80] mt-2">※ NFCタッチはAndroid（Chrome）のみ対応しています。それ以外の端末はQR読み取りをお使いください。</div>
+          )}
+
+          {linkMode === 'nfc' && (
+            <div className="text-center py-6">
+              <div className="text-4xl mb-2 animate-pulse">📱</div>
+              <div className="text-sm font-bold text-[#0E1A12] mb-1">タグをスマホの背面に近づけてください…</div>
+              {linking && <div className="text-xs text-[#7A8E80] mb-3">紐づけ中...</div>}
+              <button onClick={stopScan} className="text-xs text-[#B83030] font-bold mt-2">キャンセル</button>
+            </div>
+          )}
+
+          {linkMode === 'qr' && (
+            <div className="text-center">
+              <video ref={videoRef} playsInline muted className="w-full rounded-xl border border-[#E0EAE2] mb-2" />
+              <div className="text-xs text-[#7A8E80] mb-2">封入カードのQRコードにカメラを向けてください</div>
+              {linking && <div className="text-xs text-[#7A8E80] mb-2">紐づけ中...</div>}
+              <button onClick={stopScan} className="text-xs text-[#B83030] font-bold">キャンセル</button>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-4">

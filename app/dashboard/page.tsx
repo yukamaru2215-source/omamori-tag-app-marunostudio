@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Child } from '@/lib/types'
+import { useTagScanner } from '@/lib/useTagScanner'
 import PushManager from '@/app/push-manager'
 
 function updateBadge(count: number) {
@@ -32,7 +33,11 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       // OAuthのリダイレクトでhashが付く前に、?tagIdを保持しておく（次のreplaceStateで消える前に読む）
+      // Supabase側の許可URL照合でクエリパラメータが落とされてURLにtagIdが無いことがあるため、
+      // /loginで退避しておいたlocalStorageから復元する（同一ブラウザ内のフォールバック）
       const tagIdFromUrl = new URLSearchParams(window.location.search).get('tagId')
+        ?? window.localStorage.getItem('omamori_pending_tag_id')
+      if (tagIdFromUrl) window.localStorage.removeItem('omamori_pending_tag_id')
 
       let session = (await supabase.auth.getSession()).data.session
 
@@ -98,6 +103,10 @@ export default function DashboardPage() {
     await supabase.auth.signOut()
     router.push('/')
   }
+
+  const { mode: scanMode, nfcSupported, videoRef, startNfc, startQr, stop: stopScan } = useTagScanner((tagId) => {
+    router.push(`/register?tagId=${encodeURIComponent(tagId)}`)
+  })
 
   if (loading) return (
     <main className="min-h-screen bg-[#F4F7F5] flex items-center justify-center">
@@ -166,8 +175,50 @@ export default function DashboardPage() {
           ))
         )}
 
-        <Link href="/register" className="block w-full bg-[#1A6640] text-white text-center py-4 rounded-2xl font-bold text-lg shadow-lg mt-2 mb-3">
-          ＋ 新しく登録する
+        <div className="bg-white rounded-2xl p-5 border border-[#E0EAE2] shadow-sm mb-3">
+          <div className="text-xs font-black text-[#7A8E80] uppercase tracking-widest mb-2">🏷️ 新しいタグで登録する</div>
+          <div className="text-sm text-[#7A8E80] mb-3">お手持ちの未登録の「おまもりタグ」を、NFCタッチかQR読み取りでそのまま登録できます。</div>
+
+          {scanMode === 'idle' && (
+            <div className="flex gap-2">
+              <button
+                onClick={startNfc}
+                disabled={!nfcSupported}
+                className="flex-1 bg-[#1A6640] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40"
+              >
+                📱 NFCでタッチ
+              </button>
+              <button
+                onClick={startQr}
+                className="flex-1 bg-[#E6F4EC] text-[#1A6640] py-3 rounded-xl font-bold text-sm"
+              >
+                📷 QRを読み取る
+              </button>
+            </div>
+          )}
+          {!nfcSupported && scanMode === 'idle' && (
+            <div className="text-xs text-[#7A8E80] mt-2">※ NFCタッチはAndroid（Chrome）のみ対応しています。それ以外の端末はQR読み取りをお使いください。</div>
+          )}
+
+          {scanMode === 'nfc' && (
+            <div className="text-center py-6">
+              <div className="text-4xl mb-2 animate-pulse">📱</div>
+              <div className="text-sm font-bold text-[#0E1A12] mb-1">タグをスマホの背面に近づけてください…</div>
+              <button onClick={stopScan} className="text-xs text-[#B83030] font-bold mt-2">キャンセル</button>
+            </div>
+          )}
+
+          {scanMode === 'qr' && (
+            <div className="text-center">
+              <video ref={videoRef} playsInline muted className="w-full rounded-xl border border-[#E0EAE2] mb-2" />
+              <div className="text-xs text-[#7A8E80] mb-2">封入カードのQRコードにカメラを向けてください</div>
+              <button onClick={stopScan} className="text-xs text-[#B83030] font-bold">キャンセル</button>
+            </div>
+          )}
+        </div>
+
+        <Link href="/register" className="block w-full bg-white border border-[#E0EAE2] text-[#1A6640] text-center py-4 rounded-2xl font-bold text-lg mt-2 mb-3">
+          ＋ タグなしで新しく登録する
         </Link>
 
         <Link href="/guide" className="flex items-center justify-between bg-white border border-[#E0EAE2] rounded-2xl px-4 py-3 shadow-sm mb-3">

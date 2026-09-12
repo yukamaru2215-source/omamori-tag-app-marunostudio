@@ -6,6 +6,16 @@ import { supabase } from '@/lib/supabase'
 
 type Mode = 'select' | 'signin' | 'signup' | 'reset'
 
+// Supabaseの確認メール/OAuthリダイレクトが許可URLの照合でクエリパラメータ（tagId）を
+// 落としてしまうことがあるため、リダイレクト前にlocalStorageへ退避しておき、
+// 戻ってきた側（/dashboard）でURLに無ければここから復元する。
+const PENDING_TAG_KEY = 'omamori_pending_tag_id'
+
+function savePendingTag(tagId: string) {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(PENDING_TAG_KEY, tagId)
+}
+
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -18,14 +28,17 @@ function LoginContent() {
   const [done, setDone] = useState('')
 
   // NFCタグ経由のログインでは、確認メールが別ブラウザ/端末で開かれてもタグIDを見失わないようURLで引き継ぐ
-  const dashboardUrl = tagId
-    ? `${window.location.origin}/dashboard?tagId=${encodeURIComponent(tagId)}`
-    : `${window.location.origin}/dashboard`
+  function buildDashboardUrl() {
+    return tagId
+      ? `${window.location.origin}/dashboard?tagId=${encodeURIComponent(tagId)}`
+      : `${window.location.origin}/dashboard`
+  }
 
   async function handleGoogleLogin() {
+    if (tagId) savePendingTag(tagId)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: dashboardUrl },
+      options: { redirectTo: buildDashboardUrl() },
     })
   }
 
@@ -45,10 +58,11 @@ function LoginContent() {
     if (!email || !password) { setError('メールアドレスとパスワードを入力してください'); return }
     if (password.length < 8) { setError('パスワードは8文字以上で入力してください'); return }
     setLoading(true); setError('')
+    if (tagId) savePendingTag(tagId)
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: dashboardUrl },
+      options: { emailRedirectTo: buildDashboardUrl() },
     })
     if (error) {
       setError(error.message.includes('already registered')
