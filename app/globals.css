@@ -12,11 +12,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+  このアプリはダークモードに対応したデザインになっていない（全ページ固定の配色）。
+  OSのダークモード設定に反応してforegroundだけ白っぽくすると、背景が白いままの
+  input要素などで文字色が背景と同化して見えなくなるため、常にライト配色に固定する。
+*/
+:root {
+  color-scheme: light;
 }
 
 body {
