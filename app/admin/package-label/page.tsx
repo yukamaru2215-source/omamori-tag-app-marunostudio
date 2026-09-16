@@ -42,10 +42,12 @@ export default function PackageLabelPage() {
   const [sheets, setSheets] = useState('1')
 
   useEffect(() => {
-    setSiteUrl(window.location.origin)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      setSiteUrl(window.location.origin)
+    }
   }, [])
 
-  const targetUrl = `${siteUrl}/guide/visual`
+  const targetUrl = `${siteUrl}/guide`
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=2&data=${encodeURIComponent(targetUrl)}`
 
   const hpUrl = 'https://ameblo.jp/marunostudio/'

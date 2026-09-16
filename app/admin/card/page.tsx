@@ -78,7 +78,9 @@ function InsertCardContent() {
   const [siteUrl, setSiteUrl] = useState('https://tag.marunostudio.com')
 
   useEffect(() => {
-    setSiteUrl(window.location.origin)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      setSiteUrl(window.location.origin)
+    }
   }, [])
 
   const tagIds = idsParam
