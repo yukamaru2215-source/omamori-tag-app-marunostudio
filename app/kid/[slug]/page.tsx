@@ -361,7 +361,7 @@ export default function KidPage({ params }: { params: Promise<{ slug: string }> 
                     <div className="text-xs text-[#7A8E80]">{c.relation}</div>
                   </div>
                   <a href={`tel:${c.phone.replace(/-/g, '')}`} className="bg-[#E6F4EC] text-[#1A6640] px-4 py-2 rounded-xl font-bold text-sm">
-                    📞 {c.phone}
+                    📞 電話をかける
                   </a>
                 </div>
               </div>
